@@ -111,7 +111,6 @@ class ConstructorMustCallInitialize extends DartLintRule {
     return _checkSuperClass(superClass.element);
     // final superclass = element.parent?.thisOrAncestorOfType<ClassDeclaration>();
     // return _hasLifecycleMixin(superClass);
-
   }
 
   bool _checkSuperClass(Element? element) {
@@ -212,8 +211,36 @@ class ConstructorMustInstallHooks extends DartLintRule {
       }
     }
 
-    return installers;
+    return installers..addAll(
+      _getSuperClassInstallers(element.extendsClause?.superclass.element),
+    );
   }
 
-  Map<String>
+  Map<String, String> _getSuperClassInstallers(Element? element) {
+    final installers = <String, String>{};
+
+    if (element == null) return installers;
+
+    if (element is ClassElement) {
+      for (final mixin in element.mixins) {
+        final mixinElement = mixin.element;
+        if (mixinElement is MixinElement) {
+          for (final method in mixinElement.methods) {
+            final name = method.name ?? '';
+
+            if (name.startsWith('install') && name.endsWith('Hooks')) {
+              installers[mixinElement.name!] = name;
+            }
+          }
+        }
+      }
+
+      final superInstallers = _getSuperClassInstallers(
+        element.supertype?.element,
+      );
+      installers.addAll(superInstallers);
+    }
+
+    return installers;
+  }
 }
