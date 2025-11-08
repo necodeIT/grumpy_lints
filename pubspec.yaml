@@ -1,0 +1,12 @@
+name: modular_foundation_lints
+description: Linting rules for using modular_foundation
+version: 0.1.0
+homepage: https://github.com/necodeIT/modular_foundation_lints
+
+environment:
+  sdk: ^3.0.0
+
+dependencies:
+
+dev_dependencies:
+  lints: ^5.0.0
