@@ -1,39 +1,68 @@
-<!-- 
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# Modular Foundation Lints
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/tools/pub/writing-package-pages). 
+Lint rules for using Modular Foundation.
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/to/develop-packages). 
--->
+## Rules
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+| Rule | Overview | Severity | Enabled by Default | Fix Available |
+| ---- | -------- | -------- | ------------------ | ------------- |
+| [call_initialize_in_constructor](#call_initialize_in_constructor) | A constructor of class with LifecycleMixin must call `initialize`. | ERROR | Yes | ✅ |
+| [avoid_abstract_initialize_calls](#avoid_abstract_initialize_calls) | An abstract class constructor must not call `initialize` since it cannot be instantiated. | ERROR | Yes | ✅ |
+| [call_initialize_last](#call_initialize_last) | `initialize` should be called at the end of the constructor body. | WARNING | Yes | ✅ |
+| [constructor_must_call_install_hooks](#constructor_must_call_install_hooks) | A constructor of class with LifecycleMixin must call installHooks() at the **beginning** of its body. | ERROR | Yes | ✅ |
 
-## Features
+### call_initialize_in_constructor
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+No additional details provided.
 
-## Getting started
+#### Examples
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+No examples provided.
 
-## Usage
+### avoid_abstract_initialize_calls
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder. 
+Abstract classes with a LifecycleMixin should not call `initialize()` in their constructors, as abstract classes cannot be instantiated. Calling `initialize()` in an abstract class will fire the onInitialize lifecycle event prematurely, potentially leading to unexpected behavior.
+
+Instead, `initialize()` should be called in the constructors of concrete subclasses that extend the abstract class. This ensures that the lifecycle events are triggered appropriately when instances of the concrete classes are created.
+
+#### Examples
+
+**✅ DO**
 
 ```dart
-const like = 'sample';
+class MyConcreteClass extends MyBaseClass {
+  MyConcreteClass() : super() {
+    // Correct: Calling initialize in a concrete class
+    initialize();
+  }
+}
+
 ```
 
-## Additional information
+**❌ DON'T**
 
-TODO: Tell users more about the package: where to find more information, how to 
-contribute to the package, how to file issues, what response they can expect 
-from the package authors, and more.
+```dart
+abstract class MyBaseClass with LifecycleMixin {
+  MyBaseClass() {
+    // Incorrect: Calling initialize in an abstract class
+    initialize();
+  }
+}
+
+```
+
+### call_initialize_last
+
+No additional details provided.
+
+#### Examples
+
+No examples provided.
+
+### constructor_must_call_install_hooks
+
+No additional details provided.
+
+#### Examples
+
+No examples provided.
