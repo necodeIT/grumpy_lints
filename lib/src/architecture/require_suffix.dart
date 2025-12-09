@@ -2,7 +2,6 @@ import 'package:analyzer/error/error.dart' hide LintCode;
 import 'package:analyzer/error/listener.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 import 'package:modular_foundation_lints/src/architecture/fixes.dart';
-import 'package:modular_foundation_lints/src/utils/const.dart';
 import 'package:modular_foundation_lints/src/utils/rule.dart';
 
 class RequireSuffix extends DocumentedDartLintRule {
@@ -12,12 +11,15 @@ class RequireSuffix extends DocumentedDartLintRule {
   final Map<String, String> examples;
   @override
   final String description;
+  @override
+  final bool enabledByDefault;
 
   RequireSuffix({
     required this.layer,
     required this.suffix,
     Map<String, String>? examples,
     String? description,
+    this.enabledByDefault = true,
   }) : examples =
            examples ??
            {
@@ -48,7 +50,7 @@ abstract class MyCustom {
        );
 
   @override
-  List<String> get filesToAnalyze => const ['**/datasources/**.dart'];
+  List<String> get filesToAnalyze => ['**/$layer/**.dart'];
 
   @override
   void run(
@@ -57,7 +59,7 @@ abstract class MyCustom {
     CustomLintContext context,
   ) {
     context.registry.addClassDeclaration((declaration) {
-      final hasSuffix = declaration.name.lexeme.endsWith(kDatasourceClass);
+      final hasSuffix = declaration.name.lexeme.endsWith(suffix);
       if (hasSuffix) return;
 
       reporter.atNode(declaration, code);

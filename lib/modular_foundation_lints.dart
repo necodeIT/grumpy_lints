@@ -29,7 +29,7 @@ final List<DocumentedDartLintRule> rules = [
   // Suffix rules
   RequireSuffix(layer: 'services', suffix: kServiceClass),
   RequireSuffix(layer: 'datasources', suffix: kDatasourceClass),
-  RequireSuffix(layer: 'models', suffix: kModelClass),
+  RequireSuffix(layer: 'models', suffix: kModelClass, enabledByDefault: false),
   RequireSuffix(layer: 'repositories', suffix: kRepoClass),
   RequireSuffix(layer: 'views', suffix: kViewClass),
   RequireSuffix(layer: 'guards', suffix: kGuardClass),
