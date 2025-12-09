@@ -19,6 +19,8 @@ class AvoidAbstractInitializeCalls extends DocumentedDartLintRule {
     correctionMessage:
         'Try removing `initialize();` from the constructor body and call it in the constructors of concrete subclasses instead.',
     errorSeverity: DiagnosticSeverity.ERROR,
+    url:
+        'https://github.com/necodeIT/modular_foundation_lints#avoid_abstract_initialize_calls',
   );
 
   @override
@@ -48,7 +50,7 @@ class AvoidAbstractInitializeCalls extends DocumentedDartLintRule {
   }
 
   @override
-  List<Fix> getFixes() => [_RemoveInitializeFromAbstractConstructor()];
+  List<Fix> getFixes() => [_Fix()];
 
   @override
   String get description => '''
@@ -77,7 +79,7 @@ abstract class MyBaseClass with LifecycleMixin {
   };
 }
 
-class _RemoveInitializeFromAbstractConstructor extends DartFix {
+class _Fix extends DartFix {
   @override
   void run(
     CustomLintResolver resolver,

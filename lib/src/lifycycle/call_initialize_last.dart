@@ -20,6 +20,8 @@ class CallInitializeLast extends DocumentedDartLintRule {
     correctionMessage:
         'Try moving `$kInitializeMethod();` to the end of the constructor body.',
     errorSeverity: DiagnosticSeverity.WARNING,
+    url:
+        'https://github.com/necodeIT/modular_foundation_lints#call_initialize_last',
   );
 
   @override
@@ -50,14 +52,14 @@ class CallInitializeLast extends DocumentedDartLintRule {
   }
 
   @override
-  List<Fix> getFixes() => [_MoveInitializeToEndFix()];
+  List<Fix> getFixes() => [_Fix()];
 
   @override
   String get description => '''
 ''';
 }
 
-class _MoveInitializeToEndFix extends DartFix {
+class _Fix extends DartFix {
   @override
   void run(
     CustomLintResolver resolver,

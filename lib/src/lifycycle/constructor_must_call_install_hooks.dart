@@ -29,6 +29,8 @@ class ConstructorMustInstallHooks extends DocumentedDartLintRule {
     correctionMessage:
         'Try adding `installHooks();` to the **beginning** of the constructor body.',
     errorSeverity: DiagnosticSeverity.ERROR,
+    url:
+        'https://github.com/necodeIT/modular_foundation_lints#constructor_must_call_install_hooks',
   );
 
   static LintCode mustCallInstallers(String mixin, String installer) {
@@ -38,6 +40,8 @@ class ConstructorMustInstallHooks extends DocumentedDartLintRule {
           'A constructor of a class with $mixin must call $installer, as required by the mixin.',
       correctionMessage: 'Try adding `$installer();` to the constructor body.',
       errorSeverity: DiagnosticSeverity.ERROR,
+      url:
+          'https://github.com/necodeIT/modular_foundation_lints#constructor_must_call_install_hooks',
     );
   }
 
@@ -76,14 +80,14 @@ class ConstructorMustInstallHooks extends DocumentedDartLintRule {
   }
 
   @override
-  List<Fix> getFixes() => [_AddMissingInstallHooksFix()];
+  List<Fix> getFixes() => [_Fix()];
 
   @override
   String get description => '''
 ''';
 }
 
-class _AddMissingInstallHooksFix extends DartFix {
+class _Fix extends DartFix {
   @override
   void run(
     CustomLintResolver resolver,

@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:custom_lint_builder/custom_lint_builder.dart';
 import 'package:modular_foundation_lints/modular_foundation_lints.dart';
 
 void main(List<String> args) {
