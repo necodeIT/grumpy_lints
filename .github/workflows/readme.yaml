@@ -17,7 +17,7 @@ jobs:
         - name: Install dependencies
           run: dart pub get
         - name: Generate README
-          run: dart run tool/generate_readme.dart
+          run: dart run bin/readme.dart
         - name: Commit changes
           run: |
             git config --global user.name 'github-actions[bot]'
