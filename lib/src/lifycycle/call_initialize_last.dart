@@ -55,8 +55,93 @@ class CallInitializeLast extends DocumentedDartLintRule {
   List<Fix> getFixes() => [_Fix()];
 
   @override
-  String get description => '''
+  String get description =>
+      '''
+Enforces that `$kInitializeMethod()` is the *last* statement in the constructor body of concrete classes using `LifecycleMixin`.
+
+`$kInitializeMethod()` typically triggers lifecycle callbacks (such as `onInitialize`). If you keep doing work after that call — mutating fields, registering listeners, emitting events — that logic runs **after** the lifecycle phase, and consumers may see a half-initialized object.
+
+By always calling `$kInitializeMethod()` last, you ensure that:
+
+- all constructor setup runs before lifecycle hooks observe the instance
+- there is a clear, predictable "end of initialization" point
+- side-effects after construction are not accidentally executed during initialization.
 ''';
+
+  @override
+  Map<String, String> get examples => {
+    '''
+// ✅ Correct: initialize() is called last.
+class MyService with LifecycleMixin {
+  MyService(Dependency dep) {
+    _dep = dep;
+    _configure();
+    initialize();
+  }
+
+  late final Dependency _dep;
+
+  void _configure() {
+    // setup...
+  }
+}
+''': '''
+// ❌ Incorrect: work happens after initialize().
+class MyService with LifecycleMixin {
+  MyService(Dependency dep) {
+    _dep = dep;
+    initialize(); // Lifecycle hooks run here...
+
+    _configure(); // ...but more setup happens afterwards.
+  }
+
+  late final Dependency _dep;
+
+  void _configure() {
+    // setup...
+  }
+}
+''',
+    '''
+// ✅ Correct: guard logic + branching before initialize(), nothing after.
+class ConditionalService with LifecycleMixin {
+  ConditionalService(bool enabled) {
+    if (!enabled) {
+      _disabled = true;
+      initialize();
+      return;
+    }
+
+    _disabled = false;
+    _prepareHeavyResources();
+    initialize();
+  }
+
+  bool _disabled = false;
+
+  void _prepareHeavyResources() {}
+}
+''': '''
+// ❌ Incorrect: logic after initialize() in some branches.
+class ConditionalService with LifecycleMixin {
+  ConditionalService(bool enabled) {
+    if (!enabled) {
+      _disabled = true;
+      initialize();
+      return;
+    }
+
+    _disabled = false;
+    initialize(); // Called too early.
+    _prepareHeavyResources(); // Runs after lifecycle hooks.
+  }
+
+  bool _disabled = false;
+
+  void _prepareHeavyResources() {}
+}
+''',
+  };
 }
 
 class _Fix extends DartFix {

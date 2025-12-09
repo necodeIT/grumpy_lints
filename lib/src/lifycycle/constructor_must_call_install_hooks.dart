@@ -25,9 +25,9 @@ class ConstructorMustInstallHooks extends DocumentedDartLintRule {
   static const mustCallInstallHooks = LintCode(
     name: 'constructor_must_call_install_hooks',
     problemMessage:
-        'A constructor of class with LifecycleMixin must call installHooks() at the **beginning** of its body.',
+        'A constructor of a class with required hook mixins must call their installer methods.',
     correctionMessage:
-        'Try adding `installHooks();` to the **beginning** of the constructor body.',
+        'Add the corresponding install*Hooks() call(s) to the constructor body.',
     errorSeverity: DiagnosticSeverity.ERROR,
     url:
         'https://github.com/necodeIT/modular_foundation_lints#constructor_must_call_install_hooks',
@@ -81,10 +81,82 @@ class ConstructorMustInstallHooks extends DocumentedDartLintRule {
 
   @override
   List<Fix> getFixes() => [_Fix()];
-
   @override
   String get description => '''
+Ensures that any concrete class using mixins which expose installer-style hook methods (for example, `installLoggingHooks`, `installLifecycleHooks`) actually calls those methods from its constructor.
+
+This rule scans mixins for methods named like `install*Hooks` (@mustCallInConstructor in the future). If a class mixes in such a mixin (directly or via a superclass), each `install*Hooks` method is treated as **required** at construction time. Missing installer calls usually mean hooks/listeners/telemetry are never wired up, even though the type advertises that behaviour via its mixins.
+
+The fix inserts the missing `install*Hooks()` calls at the beginning of the constructor body.
 ''';
+
+  @override
+  Map<String, String> get examples => {
+    '''
+// ✅ Correct: constructor calls the installer from the mixin.
+mixin LoggingHooks {
+  @mustCallInConstructor
+  void installLoggingHooks() {
+    // set up loggers, sinks, etc.
+  }
+}
+
+class UserService with LoggingHooks {
+  UserService() {
+    installLoggingHooks();
+    // other setup...
+  }
+}
+''': '''
+// ❌ Incorrect: mixin is used, but its installer is never called.
+mixin LoggingHooks { 
+  @mustCallInConstructor
+  void installLoggingHooks() {
+    // set up loggers, sinks, etc.
+  }
+}
+
+class UserService with LoggingHooks {
+  UserService() {
+    // other setup...
+    // Missing: installLoggingHooks();
+  }
+}
+''',
+    '''
+// ✅ Correct: subclass still calls installers from a mixin on the base class.
+mixin MetricsHooks {
+  @mustCallInConstructor
+  void installMetricsHooks() {}
+}
+
+abstract class BaseService with MetricsHooks {
+  BaseService();
+}
+
+class OrdersService extends BaseService {
+  OrdersService() : super() {
+    installMetricsHooks();
+  }
+}
+''': '''
+// ❌ Incorrect: subclass relies on mixin from superclass but forgets installer.
+mixin MetricsHooks {
+  @mustCallInConstructor
+  void installMetricsHooks() {}
+}
+
+abstract class BaseService with MetricsHooks {
+  BaseService();
+}
+
+class OrdersService extends BaseService {
+  OrdersService() : super() {
+    // Missing: installMetricsHooks();
+  }
+}
+''',
+  };
 }
 
 class _Fix extends DartFix {
@@ -172,7 +244,7 @@ Map<String, String> _getInstallers(ClassDeclaration element) {
     if (mixinElement is MixinElement) {
       for (final method in mixinElement.methods) {
         final name = method.name ?? '';
-
+        // TODO: replace with @mustCallInConstructor annotation check
         if (name.startsWith('install') && name.endsWith('Hooks')) {
           installers[mixinElement.name!] = name;
         }
@@ -197,6 +269,7 @@ Map<String, String> _getSuperClassInstallers(Element? element) {
         for (final method in mixinElement.methods) {
           final name = method.name ?? '';
 
+          // TODO: replace with @mustCallInConstructor annotation check
           if (name.startsWith('install') && name.endsWith('Hooks')) {
             installers[mixinElement.name!] = name;
           }

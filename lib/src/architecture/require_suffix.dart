@@ -24,25 +24,45 @@ class RequireSuffix extends DocumentedDartLintRule {
            examples ??
            {
              '''
-abstract class MyCustom$suffix extends $suffix {
-  // Service implementation
+// ✅ Correct: class name follows the "$suffix" convention.
+abstract class UserAccount$suffix {
+  // $layer implementation
 }
-''': '''
-abstract class MyCustom {
-  // Service implementation
+''':
+                 '''
+// ❌ Incorrect: missing the required "$suffix" suffix.
+abstract class UserAccount {
+  // $layer implementation
+}
+''',
+             '''
+// ✅ Correct: concrete class also uses the "$suffix" suffix.
+class PaymentProcessing$suffix {
+  // ...
+}
+''':
+                 '''
+// ❌ Incorrect: same concept without the "$suffix" suffix.
+class PaymentProcessing {
+  // ...
 }
 ''',
            },
        description =
            description ??
-           '''A $layer class must have a name that ends with "$suffix" to ensure proper identification within the modular framework.''',
+           'Enforces a naming convention for the `$layer` layer: all classes '
+               'must end with the `$suffix` suffix.\n\n'
+               'This keeps responsibilities easy to spot (by name alone), '
+               'improves search/filters in large codebases, and makes the '
+               'modular architecture predictable.',
        super(
          code: LintCode(
            name: '${layer}_must_have_${suffix.toLowerCase()}_suffix',
            problemMessage:
-               'A $layer declaration must have a name that ends with "$suffix" to ensure proper identification within the modular framework.',
+               'Classes in the "$layer" layer must have names that end with '
+               '"$suffix" to follow the naming convention.',
            correctionMessage:
-               'Try renaming the $layer class to have a "$suffix" suffix.',
+               'Rename this class so its name ends with "$suffix".',
            errorSeverity: DiagnosticSeverity.WARNING,
            url:
                'https://github.com/necodeIT/modular_foundation_lints#${layer}_must_have_${suffix.toLowerCase()}_suffix',

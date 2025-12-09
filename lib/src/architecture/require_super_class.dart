@@ -22,19 +22,36 @@ class RequireSuperClass extends DocumentedDartLintRule {
     Map<String, String>? examples,
   }) : description =
            description ??
-           '''
-A ${superClassName.toLowerCase()} class must extend the base `$superClassName` class provided by the modular framework. This ensures that the ${superClassName.toLowerCase()} integrates properly with the framework's lifecycle management, dependency injection, and other core functionalities.''',
+           'Require all classes in the `$layer` layer to extend `$superClassName`.\n\n'
+               'This ensures a consistent API for the modular framework '
+               '(e.g. lifecycle hooks, logging, error handling) and prevents '
+               'classes from silently opting out of the shared behaviour.',
        examples =
            examples ??
            {
+             // ✅ good  -> ❌ bad
              '''
+// ✅ Correct: extends the required base class.
 abstract class My$superClassName extends $superClassName {
   // ${superClassName.toLowerCase()} implementation
 }
 ''':
                  '''
+// ❌ Incorrect: does not extend the required base class.
 abstract class My$superClassName {
   // ${superClassName.toLowerCase()} implementation
+}
+''',
+             '''
+// ✅ Correct: concrete class in the "$layer" layer extends the base type.
+class UserProfile$superClassName extends $superClassName {
+  // ...
+}
+''':
+                 '''
+// ❌ Incorrect: concrete class in the "$layer" layer without the base type.
+class UserProfile$superClassName {
+  // ...
 }
 ''',
            },
@@ -42,9 +59,9 @@ abstract class My$superClassName {
          code: LintCode(
            name: '${layer}_must_extend_${superClassName.toLowerCase()}',
            problemMessage:
-               'A ${superClassName.toLowerCase()} declaration in $layer must extend the base $superClassName class to ensure proper functionality within the modular framework.',
-           correctionMessage:
-               'Try extending the $superClassName class in your service declaration.',
+               'Classes in the "$layer" layer must extend $superClassName '
+               'so the modular framework can treat them uniformly.',
+           correctionMessage: 'Extend $superClassName from this class.',
            errorSeverity: DiagnosticSeverity.ERROR,
            url:
                'https://github.com/necodeIT/modular_foundation_lints#${layer}_must_extend_${superClassName.toLowerCase()}',

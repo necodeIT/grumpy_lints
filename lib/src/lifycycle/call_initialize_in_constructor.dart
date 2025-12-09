@@ -15,7 +15,7 @@ class CallInitializeInConstructor extends DocumentedDartLintRule {
   static const _code = LintCode(
     name: 'call_initialize_in_constructor',
     problemMessage:
-        'A constructor of class with LifecycleMixin must call `$kInitializeMethod`.',
+        'A constructor of class with $kLifecycleMixin must call `$kInitializeMethod`.',
     correctionMessage:
         'Try adding `$kInitializeMethod();` at the end of the constructor body.',
     errorSeverity: DiagnosticSeverity.ERROR,
@@ -54,8 +54,61 @@ class CallInitializeInConstructor extends DocumentedDartLintRule {
   List<Fix> getFixes() => [_Fix()];
 
   @override
-  String get description => '''
+  String get description =>
+      '''
+Enforces that every non-abstract class using `LifecycleMixin` calls `$kInitializeMethod()` in its constructor body.
+
+Concrete types with `LifecycleMixin` are expected to trigger their lifecycle hooks (such as `onInitialize`) when an instance is created. If `$kInitializeMethod()` is never called, those hooks will silently never run, leading to partially-initialized objects and hard-to-track bugs.
+
+This rule complements `avoid_abstract_initialize_calls`:
+- abstract base classes **must not** call `initialize()` in their constructors
+- concrete subclasses **must** call `initialize()` in theirs.
 ''';
+
+  @override
+  Map<String, String> get examples => {
+    '''
+// ✅ Correct: concrete class with LifecycleMixin calls initialize().
+class MyService with LifecycleMixin {
+  MyService() {
+    // Custom setup...
+    initialize();
+  }
+}
+''': '''
+// ❌ Incorrect: initialize() is never called in the constructor.
+class MyService with LifecycleMixin {
+  MyService() {
+    // Custom setup...
+  }
+}
+''',
+    '''
+// ✅ Correct: all non-factory constructors call initialize().
+class MultiCtorService with LifecycleMixin {
+  MultiCtorService() {
+    initialize();
+  }
+
+  MultiCtorService.withConfig(Config config) {
+    // Use config...
+    initialize();
+  }
+}
+''': '''
+// ❌ Incorrect: one of the constructors forgets to call initialize().
+class MultiCtorService with LifecycleMixin {
+  MultiCtorService() {
+    initialize();
+  }
+
+  MultiCtorService.withConfig(Config config) {
+    // Use config...
+    // Missing initialize();
+  }
+}
+''',
+  };
 }
 
 class _Fix extends DartFix {
