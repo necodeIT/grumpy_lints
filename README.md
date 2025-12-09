@@ -9,27 +9,87 @@ Lint rules for using Modular Foundation.
 | [call_initialize_in_constructor](#call_initialize_in_constructor) | A constructor of class with LifecycleMixin must call `initialize`. | ERROR | Yes | ✅ |
 | [avoid_abstract_initialize_calls](#avoid_abstract_initialize_calls) | An abstract class constructor must not call `initialize` since it cannot be instantiated. | ERROR | Yes | ✅ |
 | [call_initialize_last](#call_initialize_last) | `initialize` should be called at the end of the constructor body. | WARNING | Yes | ✅ |
-| [constructor_must_call_install_hooks](#constructor_must_call_install_hooks) | A constructor of class with LifecycleMixin must call installHooks() at the **beginning** of its body. | ERROR | Yes | ✅ |
-| [services_must_have_service_suffix](#services_must_have_service_suffix) | A services declaration must have a name that ends with "Service" to ensure proper identification within the modular framework. | WARNING | Yes | ✅ |
-| [datasources_must_have_datasource_suffix](#datasources_must_have_datasource_suffix) | A datasources declaration must have a name that ends with "Datasource" to ensure proper identification within the modular framework. | WARNING | Yes | ✅ |
-| [models_must_have_model_suffix](#models_must_have_model_suffix) | A models declaration must have a name that ends with "Model" to ensure proper identification within the modular framework. | WARNING | No | ✅ |
-| [repositories_must_have_repo_suffix](#repositories_must_have_repo_suffix) | A repositories declaration must have a name that ends with "Repo" to ensure proper identification within the modular framework. | WARNING | Yes | ✅ |
-| [views_must_have_view_suffix](#views_must_have_view_suffix) | A views declaration must have a name that ends with "View" to ensure proper identification within the modular framework. | WARNING | Yes | ✅ |
-| [guards_must_have_guard_suffix](#guards_must_have_guard_suffix) | A guards declaration must have a name that ends with "Guard" to ensure proper identification within the modular framework. | WARNING | Yes | ✅ |
-| [services_must_extend_service](#services_must_extend_service) | A service declaration in services must extend the base Service class to ensure proper functionality within the modular framework. | ERROR | Yes | ✅ |
-| [datasources_must_extend_datasource](#datasources_must_extend_datasource) | A datasource declaration in datasources must extend the base Datasource class to ensure proper functionality within the modular framework. | ERROR | Yes | ✅ |
-| [models_must_extend_model](#models_must_extend_model) | A model declaration in models must extend the base Model class to ensure proper functionality within the modular framework. | ERROR | Yes | ✅ |
-| [repositories_must_extend_repo](#repositories_must_extend_repo) | A repo declaration in repositories must extend the base Repo class to ensure proper functionality within the modular framework. | ERROR | Yes | ✅ |
-| [views_must_extend_view](#views_must_extend_view) | A view declaration in views must extend the base View class to ensure proper functionality within the modular framework. | ERROR | Yes | ✅ |
-| [guards_must_extend_guard](#guards_must_extend_guard) | A guard declaration in guards must extend the base Guard class to ensure proper functionality within the modular framework. | ERROR | Yes | ✅ |
+| [constructor_must_call_install_hooks](#constructor_must_call_install_hooks) | A constructor of a class with required hook mixins must call their installer methods. | ERROR | Yes | ✅ |
+| [services_must_have_service_suffix](#services_must_have_service_suffix) | Classes in the "services" layer must have names that end with "Service" to follow the naming convention. | WARNING | Yes | ✅ |
+| [datasources_must_have_datasource_suffix](#datasources_must_have_datasource_suffix) | Classes in the "datasources" layer must have names that end with "Datasource" to follow the naming convention. | WARNING | Yes | ✅ |
+| [models_must_have_model_suffix](#models_must_have_model_suffix) | Classes in the "models" layer must have names that end with "Model" to follow the naming convention. | WARNING | No | ✅ |
+| [repositories_must_have_repo_suffix](#repositories_must_have_repo_suffix) | Classes in the "repositories" layer must have names that end with "Repo" to follow the naming convention. | WARNING | Yes | ✅ |
+| [views_must_have_view_suffix](#views_must_have_view_suffix) | Classes in the "views" layer must have names that end with "View" to follow the naming convention. | WARNING | Yes | ✅ |
+| [guards_must_have_guard_suffix](#guards_must_have_guard_suffix) | Classes in the "guards" layer must have names that end with "Guard" to follow the naming convention. | WARNING | Yes | ✅ |
+| [services_must_extend_service](#services_must_extend_service) | Classes in the "services" layer must extend Service so the modular framework can treat them uniformly. | ERROR | Yes | ✅ |
+| [datasources_must_extend_datasource](#datasources_must_extend_datasource) | Classes in the "datasources" layer must extend Datasource so the modular framework can treat them uniformly. | ERROR | Yes | ✅ |
+| [models_must_extend_model](#models_must_extend_model) | Classes in the "models" layer must extend Model so the modular framework can treat them uniformly. | ERROR | Yes | ✅ |
+| [repositories_must_extend_repo](#repositories_must_extend_repo) | Classes in the "repositories" layer must extend Repo so the modular framework can treat them uniformly. | ERROR | Yes | ✅ |
+| [views_must_extend_view](#views_must_extend_view) | Classes in the "views" layer must extend View so the modular framework can treat them uniformly. | ERROR | Yes | ✅ |
+| [guards_must_extend_guard](#guards_must_extend_guard) | Classes in the "guards" layer must extend Guard so the modular framework can treat them uniformly. | ERROR | Yes | ✅ |
 
 
 
 ### call_initialize_in_constructor
 
-No additional details provided.
+Enforces that every non-abstract class using `LifecycleMixin` calls `initialize()` in its constructor body.
+
+Concrete types with `LifecycleMixin` are expected to trigger their lifecycle hooks (such as `onInitialize`) when an instance is created. If `initialize()` is never called, those hooks will silently never run, leading to partially-initialized objects and hard-to-track bugs.
+
+This rule complements `avoid_abstract_initialize_calls`:
+- abstract base classes **must not** call `initialize()` in their constructors
+- concrete subclasses **must** call `initialize()` in theirs.
+
 #### Examples
-No examples provided.
+**✅ DO**
+```dart
+// ✅ Correct: concrete class with LifecycleMixin calls initialize().
+class MyService with LifecycleMixin {
+  MyService() {
+    // Custom setup...
+    initialize();
+  }
+}
+
+```
+
+**❌ DON'T**
+```dart
+// ❌ Incorrect: initialize() is never called in the constructor.
+class MyService with LifecycleMixin {
+  MyService() {
+    // Custom setup...
+  }
+}
+
+```
+
+**✅ DO**
+```dart
+// ✅ Correct: all non-factory constructors call initialize().
+class MultiCtorService with LifecycleMixin {
+  MultiCtorService() {
+    initialize();
+  }
+
+  MultiCtorService.withConfig(Config config) {
+    // Use config...
+    initialize();
+  }
+}
+
+```
+
+**❌ DON'T**
+```dart
+// ❌ Incorrect: one of the constructors forgets to call initialize().
+class MultiCtorService with LifecycleMixin {
+  MultiCtorService() {
+    initialize();
+  }
+
+  MultiCtorService.withConfig(Config config) {
+    // Use config...
+    // Missing initialize();
+  }
+}
+
+```
 
 
 
@@ -68,38 +128,233 @@ abstract class MyBaseClass with LifecycleMixin {
 
 ### call_initialize_last
 
-No additional details provided.
-#### Examples
-No examples provided.
+Enforces that `initialize()` is the *last* statement in the constructor body of concrete classes using `LifecycleMixin`.
 
+`initialize()` typically triggers lifecycle callbacks (such as `onInitialize`). If you keep doing work after that call — mutating fields, registering listeners, emitting events — that logic runs **after** the lifecycle phase, and consumers may see a half-initialized object.
 
+By always calling `initialize()` last, you ensure that:
 
+- all constructor setup runs before lifecycle hooks observe the instance
+- there is a clear, predictable "end of initialization" point
+- side-effects after construction are not accidentally executed during initialization.
 
-### constructor_must_call_install_hooks
-
-No additional details provided.
-#### Examples
-No examples provided.
-
-
-
-
-### services_must_have_service_suffix
-
-A services class must have a name that ends with "Service" to ensure proper identification within the modular framework.
 #### Examples
 **✅ DO**
 ```dart
-abstract class MyCustomService extends Service {
-  // Service implementation
+// ✅ Correct: initialize() is called last.
+class MyService with LifecycleMixin {
+  MyService(Dependency dep) {
+    _dep = dep;
+    _configure();
+    initialize();
+  }
+
+  late final Dependency _dep;
+
+  void _configure() {
+    // setup...
+  }
 }
 
 ```
 
 **❌ DON'T**
 ```dart
-abstract class MyCustom {
-  // Service implementation
+// ❌ Incorrect: work happens after initialize().
+class MyService with LifecycleMixin {
+  MyService(Dependency dep) {
+    _dep = dep;
+    initialize(); // Lifecycle hooks run here...
+
+    _configure(); // ...but more setup happens afterwards.
+  }
+
+  late final Dependency _dep;
+
+  void _configure() {
+    // setup...
+  }
+}
+
+```
+
+**✅ DO**
+```dart
+// ✅ Correct: guard logic + branching before initialize(), nothing after.
+class ConditionalService with LifecycleMixin {
+  ConditionalService(bool enabled) {
+    if (!enabled) {
+      _disabled = true;
+      initialize();
+      return;
+    }
+
+    _disabled = false;
+    _prepareHeavyResources();
+    initialize();
+  }
+
+  bool _disabled = false;
+
+  void _prepareHeavyResources() {}
+}
+
+```
+
+**❌ DON'T**
+```dart
+// ❌ Incorrect: logic after initialize() in some branches.
+class ConditionalService with LifecycleMixin {
+  ConditionalService(bool enabled) {
+    if (!enabled) {
+      _disabled = true;
+      initialize();
+      return;
+    }
+
+    _disabled = false;
+    initialize(); // Called too early.
+    _prepareHeavyResources(); // Runs after lifecycle hooks.
+  }
+
+  bool _disabled = false;
+
+  void _prepareHeavyResources() {}
+}
+
+```
+
+
+
+
+### constructor_must_call_install_hooks
+
+Ensures that any concrete class using mixins which expose installer-style hook methods (for example, `installLoggingHooks`, `installLifecycleHooks`) actually calls those methods from its constructor.
+
+This rule scans mixins for methods named like `install*Hooks` (@mustCallInConstructor in the future). If a class mixes in such a mixin (directly or via a superclass), each `install*Hooks` method is treated as **required** at construction time. Missing installer calls usually mean hooks/listeners/telemetry are never wired up, even though the type advertises that behaviour via its mixins.
+
+The fix inserts the missing `install*Hooks()` calls at the beginning of the constructor body.
+
+#### Examples
+**✅ DO**
+```dart
+// ✅ Correct: constructor calls the installer from the mixin.
+mixin LoggingHooks {
+  @mustCallInConstructor
+  void installLoggingHooks() {
+    // set up loggers, sinks, etc.
+  }
+}
+
+class UserService with LoggingHooks {
+  UserService() {
+    installLoggingHooks();
+    // other setup...
+  }
+}
+
+```
+
+**❌ DON'T**
+```dart
+// ❌ Incorrect: mixin is used, but its installer is never called.
+mixin LoggingHooks { 
+  @mustCallInConstructor
+  void installLoggingHooks() {
+    // set up loggers, sinks, etc.
+  }
+}
+
+class UserService with LoggingHooks {
+  UserService() {
+    // other setup...
+    // Missing: installLoggingHooks();
+  }
+}
+
+```
+
+**✅ DO**
+```dart
+// ✅ Correct: subclass still calls installers from a mixin on the base class.
+mixin MetricsHooks {
+  @mustCallInConstructor
+  void installMetricsHooks() {}
+}
+
+abstract class BaseService with MetricsHooks {
+  BaseService();
+}
+
+class OrdersService extends BaseService {
+  OrdersService() : super() {
+    installMetricsHooks();
+  }
+}
+
+```
+
+**❌ DON'T**
+```dart
+// ❌ Incorrect: subclass relies on mixin from superclass but forgets installer.
+mixin MetricsHooks {
+  @mustCallInConstructor
+  void installMetricsHooks() {}
+}
+
+abstract class BaseService with MetricsHooks {
+  BaseService();
+}
+
+class OrdersService extends BaseService {
+  OrdersService() : super() {
+    // Missing: installMetricsHooks();
+  }
+}
+
+```
+
+
+
+
+### services_must_have_service_suffix
+
+Enforces a naming convention for the `services` layer: all classes must end with the `Service` suffix.
+
+This keeps responsibilities easy to spot (by name alone), improves search/filters in large codebases, and makes the modular architecture predictable.
+#### Examples
+**✅ DO**
+```dart
+// ✅ Correct: class name follows the "Service" convention.
+abstract class UserAccountService {
+  // services implementation
+}
+
+```
+
+**❌ DON'T**
+```dart
+// ❌ Incorrect: missing the required "Service" suffix.
+abstract class UserAccount {
+  // services implementation
+}
+
+```
+
+**✅ DO**
+```dart
+// ✅ Correct: concrete class also uses the "Service" suffix.
+class PaymentProcessingService {
+  // ...
+}
+
+```
+
+**❌ DON'T**
+```dart
+// ❌ Incorrect: same concept without the "Service" suffix.
+class PaymentProcessing {
+  // ...
 }
 
 ```
@@ -109,20 +364,42 @@ abstract class MyCustom {
 
 ### datasources_must_have_datasource_suffix
 
-A datasources class must have a name that ends with "Datasource" to ensure proper identification within the modular framework.
+Enforces a naming convention for the `datasources` layer: all classes must end with the `Datasource` suffix.
+
+This keeps responsibilities easy to spot (by name alone), improves search/filters in large codebases, and makes the modular architecture predictable.
 #### Examples
 **✅ DO**
 ```dart
-abstract class MyCustomDatasource extends Datasource {
-  // Service implementation
+// ✅ Correct: class name follows the "Datasource" convention.
+abstract class UserAccountDatasource {
+  // datasources implementation
 }
 
 ```
 
 **❌ DON'T**
 ```dart
-abstract class MyCustom {
-  // Service implementation
+// ❌ Incorrect: missing the required "Datasource" suffix.
+abstract class UserAccount {
+  // datasources implementation
+}
+
+```
+
+**✅ DO**
+```dart
+// ✅ Correct: concrete class also uses the "Datasource" suffix.
+class PaymentProcessingDatasource {
+  // ...
+}
+
+```
+
+**❌ DON'T**
+```dart
+// ❌ Incorrect: same concept without the "Datasource" suffix.
+class PaymentProcessing {
+  // ...
 }
 
 ```
@@ -132,20 +409,42 @@ abstract class MyCustom {
 
 ### models_must_have_model_suffix
 
-A models class must have a name that ends with "Model" to ensure proper identification within the modular framework.
+Enforces a naming convention for the `models` layer: all classes must end with the `Model` suffix.
+
+This keeps responsibilities easy to spot (by name alone), improves search/filters in large codebases, and makes the modular architecture predictable.
 #### Examples
 **✅ DO**
 ```dart
-abstract class MyCustomModel extends Model {
-  // Service implementation
+// ✅ Correct: class name follows the "Model" convention.
+abstract class UserAccountModel {
+  // models implementation
 }
 
 ```
 
 **❌ DON'T**
 ```dart
-abstract class MyCustom {
-  // Service implementation
+// ❌ Incorrect: missing the required "Model" suffix.
+abstract class UserAccount {
+  // models implementation
+}
+
+```
+
+**✅ DO**
+```dart
+// ✅ Correct: concrete class also uses the "Model" suffix.
+class PaymentProcessingModel {
+  // ...
+}
+
+```
+
+**❌ DON'T**
+```dart
+// ❌ Incorrect: same concept without the "Model" suffix.
+class PaymentProcessing {
+  // ...
 }
 
 ```
@@ -155,20 +454,42 @@ abstract class MyCustom {
 
 ### repositories_must_have_repo_suffix
 
-A repositories class must have a name that ends with "Repo" to ensure proper identification within the modular framework.
+Enforces a naming convention for the `repositories` layer: all classes must end with the `Repo` suffix.
+
+This keeps responsibilities easy to spot (by name alone), improves search/filters in large codebases, and makes the modular architecture predictable.
 #### Examples
 **✅ DO**
 ```dart
-abstract class MyCustomRepo extends Repo {
-  // Service implementation
+// ✅ Correct: class name follows the "Repo" convention.
+abstract class UserAccountRepo {
+  // repositories implementation
 }
 
 ```
 
 **❌ DON'T**
 ```dart
-abstract class MyCustom {
-  // Service implementation
+// ❌ Incorrect: missing the required "Repo" suffix.
+abstract class UserAccount {
+  // repositories implementation
+}
+
+```
+
+**✅ DO**
+```dart
+// ✅ Correct: concrete class also uses the "Repo" suffix.
+class PaymentProcessingRepo {
+  // ...
+}
+
+```
+
+**❌ DON'T**
+```dart
+// ❌ Incorrect: same concept without the "Repo" suffix.
+class PaymentProcessing {
+  // ...
 }
 
 ```
@@ -178,20 +499,42 @@ abstract class MyCustom {
 
 ### views_must_have_view_suffix
 
-A views class must have a name that ends with "View" to ensure proper identification within the modular framework.
+Enforces a naming convention for the `views` layer: all classes must end with the `View` suffix.
+
+This keeps responsibilities easy to spot (by name alone), improves search/filters in large codebases, and makes the modular architecture predictable.
 #### Examples
 **✅ DO**
 ```dart
-abstract class MyCustomView extends View {
-  // Service implementation
+// ✅ Correct: class name follows the "View" convention.
+abstract class UserAccountView {
+  // views implementation
 }
 
 ```
 
 **❌ DON'T**
 ```dart
-abstract class MyCustom {
-  // Service implementation
+// ❌ Incorrect: missing the required "View" suffix.
+abstract class UserAccount {
+  // views implementation
+}
+
+```
+
+**✅ DO**
+```dart
+// ✅ Correct: concrete class also uses the "View" suffix.
+class PaymentProcessingView {
+  // ...
+}
+
+```
+
+**❌ DON'T**
+```dart
+// ❌ Incorrect: same concept without the "View" suffix.
+class PaymentProcessing {
+  // ...
 }
 
 ```
@@ -201,20 +544,42 @@ abstract class MyCustom {
 
 ### guards_must_have_guard_suffix
 
-A guards class must have a name that ends with "Guard" to ensure proper identification within the modular framework.
+Enforces a naming convention for the `guards` layer: all classes must end with the `Guard` suffix.
+
+This keeps responsibilities easy to spot (by name alone), improves search/filters in large codebases, and makes the modular architecture predictable.
 #### Examples
 **✅ DO**
 ```dart
-abstract class MyCustomGuard extends Guard {
-  // Service implementation
+// ✅ Correct: class name follows the "Guard" convention.
+abstract class UserAccountGuard {
+  // guards implementation
 }
 
 ```
 
 **❌ DON'T**
 ```dart
-abstract class MyCustom {
-  // Service implementation
+// ❌ Incorrect: missing the required "Guard" suffix.
+abstract class UserAccount {
+  // guards implementation
+}
+
+```
+
+**✅ DO**
+```dart
+// ✅ Correct: concrete class also uses the "Guard" suffix.
+class PaymentProcessingGuard {
+  // ...
+}
+
+```
+
+**❌ DON'T**
+```dart
+// ❌ Incorrect: same concept without the "Guard" suffix.
+class PaymentProcessing {
+  // ...
 }
 
 ```
@@ -224,10 +589,13 @@ abstract class MyCustom {
 
 ### services_must_extend_service
 
-A service class must extend the base `Service` class provided by the modular framework. This ensures that the service integrates properly with the framework's lifecycle management, dependency injection, and other core functionalities.
+Require all classes in the `services` layer to extend `Service`.
+
+This ensures a consistent API for the modular framework (e.g. lifecycle hooks, logging, error handling) and prevents classes from silently opting out of the shared behaviour.
 #### Examples
 **✅ DO**
 ```dart
+// ✅ Correct: extends the required base class.
 abstract class MyService extends Service {
   // service implementation
 }
@@ -236,8 +604,27 @@ abstract class MyService extends Service {
 
 **❌ DON'T**
 ```dart
+// ❌ Incorrect: does not extend the required base class.
 abstract class MyService {
   // service implementation
+}
+
+```
+
+**✅ DO**
+```dart
+// ✅ Correct: concrete class in the "services" layer extends the base type.
+class UserProfileService extends Service {
+  // ...
+}
+
+```
+
+**❌ DON'T**
+```dart
+// ❌ Incorrect: concrete class in the "services" layer without the base type.
+class UserProfileService {
+  // ...
 }
 
 ```
@@ -247,10 +634,13 @@ abstract class MyService {
 
 ### datasources_must_extend_datasource
 
-A datasource class must extend the base `Datasource` class provided by the modular framework. This ensures that the datasource integrates properly with the framework's lifecycle management, dependency injection, and other core functionalities.
+Require all classes in the `datasources` layer to extend `Datasource`.
+
+This ensures a consistent API for the modular framework (e.g. lifecycle hooks, logging, error handling) and prevents classes from silently opting out of the shared behaviour.
 #### Examples
 **✅ DO**
 ```dart
+// ✅ Correct: extends the required base class.
 abstract class MyDatasource extends Datasource {
   // datasource implementation
 }
@@ -259,8 +649,27 @@ abstract class MyDatasource extends Datasource {
 
 **❌ DON'T**
 ```dart
+// ❌ Incorrect: does not extend the required base class.
 abstract class MyDatasource {
   // datasource implementation
+}
+
+```
+
+**✅ DO**
+```dart
+// ✅ Correct: concrete class in the "datasources" layer extends the base type.
+class UserProfileDatasource extends Datasource {
+  // ...
+}
+
+```
+
+**❌ DON'T**
+```dart
+// ❌ Incorrect: concrete class in the "datasources" layer without the base type.
+class UserProfileDatasource {
+  // ...
 }
 
 ```
@@ -270,10 +679,13 @@ abstract class MyDatasource {
 
 ### models_must_extend_model
 
-A model class must extend the base `Model` class provided by the modular framework. This ensures that the model integrates properly with the framework's lifecycle management, dependency injection, and other core functionalities.
+Require all classes in the `models` layer to extend `Model`.
+
+This ensures a consistent API for the modular framework (e.g. lifecycle hooks, logging, error handling) and prevents classes from silently opting out of the shared behaviour.
 #### Examples
 **✅ DO**
 ```dart
+// ✅ Correct: extends the required base class.
 abstract class MyModel extends Model {
   // model implementation
 }
@@ -282,8 +694,27 @@ abstract class MyModel extends Model {
 
 **❌ DON'T**
 ```dart
+// ❌ Incorrect: does not extend the required base class.
 abstract class MyModel {
   // model implementation
+}
+
+```
+
+**✅ DO**
+```dart
+// ✅ Correct: concrete class in the "models" layer extends the base type.
+class UserProfileModel extends Model {
+  // ...
+}
+
+```
+
+**❌ DON'T**
+```dart
+// ❌ Incorrect: concrete class in the "models" layer without the base type.
+class UserProfileModel {
+  // ...
 }
 
 ```
@@ -293,10 +724,13 @@ abstract class MyModel {
 
 ### repositories_must_extend_repo
 
-A repo class must extend the base `Repo` class provided by the modular framework. This ensures that the repo integrates properly with the framework's lifecycle management, dependency injection, and other core functionalities.
+Require all classes in the `repositories` layer to extend `Repo`.
+
+This ensures a consistent API for the modular framework (e.g. lifecycle hooks, logging, error handling) and prevents classes from silently opting out of the shared behaviour.
 #### Examples
 **✅ DO**
 ```dart
+// ✅ Correct: extends the required base class.
 abstract class MyRepo extends Repo {
   // repo implementation
 }
@@ -305,8 +739,27 @@ abstract class MyRepo extends Repo {
 
 **❌ DON'T**
 ```dart
+// ❌ Incorrect: does not extend the required base class.
 abstract class MyRepo {
   // repo implementation
+}
+
+```
+
+**✅ DO**
+```dart
+// ✅ Correct: concrete class in the "repositories" layer extends the base type.
+class UserProfileRepo extends Repo {
+  // ...
+}
+
+```
+
+**❌ DON'T**
+```dart
+// ❌ Incorrect: concrete class in the "repositories" layer without the base type.
+class UserProfileRepo {
+  // ...
 }
 
 ```
@@ -316,10 +769,13 @@ abstract class MyRepo {
 
 ### views_must_extend_view
 
-A view class must extend the base `View` class provided by the modular framework. This ensures that the view integrates properly with the framework's lifecycle management, dependency injection, and other core functionalities.
+Require all classes in the `views` layer to extend `View`.
+
+This ensures a consistent API for the modular framework (e.g. lifecycle hooks, logging, error handling) and prevents classes from silently opting out of the shared behaviour.
 #### Examples
 **✅ DO**
 ```dart
+// ✅ Correct: extends the required base class.
 abstract class MyView extends View {
   // view implementation
 }
@@ -328,8 +784,27 @@ abstract class MyView extends View {
 
 **❌ DON'T**
 ```dart
+// ❌ Incorrect: does not extend the required base class.
 abstract class MyView {
   // view implementation
+}
+
+```
+
+**✅ DO**
+```dart
+// ✅ Correct: concrete class in the "views" layer extends the base type.
+class UserProfileView extends View {
+  // ...
+}
+
+```
+
+**❌ DON'T**
+```dart
+// ❌ Incorrect: concrete class in the "views" layer without the base type.
+class UserProfileView {
+  // ...
 }
 
 ```
@@ -339,10 +814,13 @@ abstract class MyView {
 
 ### guards_must_extend_guard
 
-A guard class must extend the base `Guard` class provided by the modular framework. This ensures that the guard integrates properly with the framework's lifecycle management, dependency injection, and other core functionalities.
+Require all classes in the `guards` layer to extend `Guard`.
+
+This ensures a consistent API for the modular framework (e.g. lifecycle hooks, logging, error handling) and prevents classes from silently opting out of the shared behaviour.
 #### Examples
 **✅ DO**
 ```dart
+// ✅ Correct: extends the required base class.
 abstract class MyGuard extends Guard {
   // guard implementation
 }
@@ -351,8 +829,27 @@ abstract class MyGuard extends Guard {
 
 **❌ DON'T**
 ```dart
+// ❌ Incorrect: does not extend the required base class.
 abstract class MyGuard {
   // guard implementation
+}
+
+```
+
+**✅ DO**
+```dart
+// ✅ Correct: concrete class in the "guards" layer extends the base type.
+class UserProfileGuard extends Guard {
+  // ...
+}
+
+```
+
+**❌ DON'T**
+```dart
+// ❌ Incorrect: concrete class in the "guards" layer without the base type.
+class UserProfileGuard {
+  // ...
 }
 
 ```
