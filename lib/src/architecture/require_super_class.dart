@@ -1,9 +1,9 @@
 import 'package:analyzer/error/error.dart' hide LintCode;
 import 'package:analyzer/error/listener.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
-import 'package:modular_foundation_lints/src/architecture/fixes.dart';
-import 'package:modular_foundation_lints/src/utils/rule.dart';
-import 'package:modular_foundation_lints/src/utils/superclass.dart';
+import 'package:grumpy_lints/src/architecture/fixes.dart';
+import 'package:grumpy_lints/src/utils/rule.dart';
+import 'package:grumpy_lints/src/utils/superclass.dart';
 
 class RequireSuperClass extends DocumentedDartLintRule {
   final String layer;
@@ -64,7 +64,7 @@ class UserProfile$superClassName {
            correctionMessage: 'Extend $superClassName from this class.',
            errorSeverity: DiagnosticSeverity.ERROR,
            url:
-               'https://github.com/necodeIT/modular_foundation_lints#${layer}_must_extend_${superClassName.toLowerCase()}',
+               'https://github.com/necodeIT/grumpy_lints#${layer}_must_extend_${superClassName.toLowerCase()}',
          ),
        );
 

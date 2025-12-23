@@ -1,6 +1,6 @@
-# Modular Foundation Lints
+# Grumpy Lints
 
-Lint rules for using Modular Foundation.
+Lint rules for using grumpy.
 
 ## Rules
 

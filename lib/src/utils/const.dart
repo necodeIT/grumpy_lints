@@ -8,5 +8,5 @@ const kRepoClass = 'Repo';
 const kGuardClass = 'Guard';
 const kViewClass = 'View';
 const kModelClass = 'Model';
-const kPackageName = 'modular_foundation';
+const kPackageName = 'grumpy';
 const kPackageImport = 'package:$kPackageName/$kPackageName.dart';

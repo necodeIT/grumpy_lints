@@ -4,11 +4,11 @@ import 'package:analyzer/error/error.dart' hide LintCode;
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
-import 'package:modular_foundation_lints/src/utils/block.dart';
-import 'package:modular_foundation_lints/src/utils/const.dart';
-import 'package:modular_foundation_lints/src/utils/indentation.dart';
-import 'package:modular_foundation_lints/src/utils/rule.dart';
-import 'package:modular_foundation_lints/src/utils/superclass.dart';
+import 'package:grumpy_lints/src/utils/block.dart';
+import 'package:grumpy_lints/src/utils/const.dart';
+import 'package:grumpy_lints/src/utils/indentation.dart';
+import 'package:grumpy_lints/src/utils/rule.dart';
+import 'package:grumpy_lints/src/utils/superclass.dart';
 
 class CallInitializeLast extends DocumentedDartLintRule {
   const CallInitializeLast() : super(code: _code);
@@ -20,8 +20,7 @@ class CallInitializeLast extends DocumentedDartLintRule {
     correctionMessage:
         'Try moving `$kInitializeMethod();` to the end of the constructor body.',
     errorSeverity: DiagnosticSeverity.WARNING,
-    url:
-        'https://github.com/necodeIT/modular_foundation_lints#call_initialize_last',
+    url: 'https://github.com/necodeIT/grumpy_lints#call_initialize_last',
   );
 
   @override

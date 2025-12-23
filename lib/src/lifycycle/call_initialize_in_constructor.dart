@@ -3,11 +3,11 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart' hide LintCode;
 import 'package:analyzer/error/listener.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
-import 'package:modular_foundation_lints/src/utils/block.dart';
-import 'package:modular_foundation_lints/src/utils/const.dart';
-import 'package:modular_foundation_lints/src/utils/indentation.dart';
-import 'package:modular_foundation_lints/src/utils/rule.dart';
-import 'package:modular_foundation_lints/src/utils/superclass.dart';
+import 'package:grumpy_lints/src/utils/block.dart';
+import 'package:grumpy_lints/src/utils/const.dart';
+import 'package:grumpy_lints/src/utils/indentation.dart';
+import 'package:grumpy_lints/src/utils/rule.dart';
+import 'package:grumpy_lints/src/utils/superclass.dart';
 
 class CallInitializeInConstructor extends DocumentedDartLintRule {
   const CallInitializeInConstructor() : super(code: _code);
@@ -20,7 +20,7 @@ class CallInitializeInConstructor extends DocumentedDartLintRule {
         'Try adding `$kInitializeMethod();` at the end of the constructor body.',
     errorSeverity: DiagnosticSeverity.ERROR,
     url:
-        'https://github.com/necodeIT/modular_foundation_lints#call_initialize_in_constructor',
+        'https://github.com/necodeIT/grumpy_lints#call_initialize_in_constructor',
   );
 
   @override

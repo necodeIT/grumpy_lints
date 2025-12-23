@@ -3,8 +3,8 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
-import 'package:modular_foundation_lints/src/utils/const.dart';
-import 'package:modular_foundation_lints/src/utils/superclass.dart';
+import 'package:grumpy_lints/src/utils/const.dart';
+import 'package:grumpy_lints/src/utils/superclass.dart';
 
 class ExtendFix extends DartFix {
   final String className;

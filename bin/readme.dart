@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:modular_foundation_lints/modular_foundation_lints.dart';
+import 'package:grumpy_lints/grumpy_lints.dart';
 
 void main(List<String> args) {
   final f = File('README.template');

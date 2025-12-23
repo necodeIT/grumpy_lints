@@ -1,8 +1,8 @@
 import 'package:analyzer/error/error.dart' hide LintCode;
 import 'package:analyzer/error/listener.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
-import 'package:modular_foundation_lints/src/architecture/fixes.dart';
-import 'package:modular_foundation_lints/src/utils/rule.dart';
+import 'package:grumpy_lints/src/architecture/fixes.dart';
+import 'package:grumpy_lints/src/utils/rule.dart';
 
 class RequireSuffix extends DocumentedDartLintRule {
   final String layer;
@@ -65,7 +65,7 @@ class PaymentProcessing {
                'Rename this class so its name ends with "$suffix".',
            errorSeverity: DiagnosticSeverity.WARNING,
            url:
-               'https://github.com/necodeIT/modular_foundation_lints#${layer}_must_have_${suffix.toLowerCase()}_suffix',
+               'https://github.com/necodeIT/grumpy_lints#${layer}_must_have_${suffix.toLowerCase()}_suffix',
          ),
        );
 

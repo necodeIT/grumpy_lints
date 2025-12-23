@@ -1,12 +1,12 @@
 import 'package:custom_lint_builder/custom_lint_builder.dart';
-import 'package:modular_foundation_lints/src/architecture/require_suffix.dart';
-import 'package:modular_foundation_lints/src/architecture/require_super_class.dart';
-import 'package:modular_foundation_lints/src/lifycycle/avoid_abstract_initialize_calls.dart';
-import 'package:modular_foundation_lints/src/lifycycle/call_initialize_in_constructor.dart';
-import 'package:modular_foundation_lints/src/lifycycle/call_initialize_last.dart';
-import 'package:modular_foundation_lints/src/lifycycle/constructor_must_call_install_hooks.dart';
-import 'package:modular_foundation_lints/src/utils/const.dart';
-import 'package:modular_foundation_lints/src/utils/rule.dart';
+import 'package:grumpy_lints/src/architecture/require_suffix.dart';
+import 'package:grumpy_lints/src/architecture/require_super_class.dart';
+import 'package:grumpy_lints/src/lifycycle/avoid_abstract_initialize_calls.dart';
+import 'package:grumpy_lints/src/lifycycle/call_initialize_in_constructor.dart';
+import 'package:grumpy_lints/src/lifycycle/call_initialize_last.dart';
+import 'package:grumpy_lints/src/lifycycle/constructor_must_call_install_hooks.dart';
+import 'package:grumpy_lints/src/utils/const.dart';
+import 'package:grumpy_lints/src/utils/rule.dart';
 
 // This is the entrypoint of our custom linter
 PluginBase createPlugin() => ModularLinter();

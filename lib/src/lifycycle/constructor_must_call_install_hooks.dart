@@ -4,8 +4,8 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart' hide LintCode;
 import 'package:analyzer/error/listener.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
-import 'package:modular_foundation_lints/src/utils/indentation.dart';
-import 'package:modular_foundation_lints/src/utils/rule.dart';
+import 'package:grumpy_lints/src/utils/indentation.dart';
+import 'package:grumpy_lints/src/utils/rule.dart';
 
 class Installer {
   final String mixinName;
@@ -30,7 +30,7 @@ class ConstructorMustInstallHooks extends DocumentedDartLintRule {
         'Add the corresponding install*Hooks() call(s) to the constructor body.',
     errorSeverity: DiagnosticSeverity.ERROR,
     url:
-        'https://github.com/necodeIT/modular_foundation_lints#constructor_must_call_install_hooks',
+        'https://github.com/necodeIT/grumpy_lints#constructor_must_call_install_hooks',
   );
 
   static LintCode mustCallInstallers(String mixin, String installer) {
@@ -41,7 +41,7 @@ class ConstructorMustInstallHooks extends DocumentedDartLintRule {
       correctionMessage: 'Try adding `$installer();` to the constructor body.',
       errorSeverity: DiagnosticSeverity.ERROR,
       url:
-          'https://github.com/necodeIT/modular_foundation_lints#constructor_must_call_install_hooks',
+          'https://github.com/necodeIT/grumpy_lints#constructor_must_call_install_hooks',
     );
   }
 
