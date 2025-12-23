@@ -1,6 +1,6 @@
 # Grumpy Lints
 
-Lint rules for using grumpy.
+Lint rules for using [Grumpy](https://github.com/necodeIT/grumpy) architecture correctly.
 
 ## Rules
 
