@@ -8,14 +8,20 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
-  custom_lint_builder: ^0.8.1
-  analyzer: ^8.0.0
-  analyzer_plugin: ^0.13.7
+  analysis_server_plugin: ^0.3.7
+  analyzer_plugin: ^0.14.1
+  analyzer: ^10.0.1
   grumpy_annotations:
     git:
       url: https://github.com/necodeIT/grumpy_annotations.git
 
 dev_dependencies:
-  lints: ^5.0.0
+  lints: ^6.0.0
   test: ^1.24.0
+  analyzer_testing: ^0.1.9
+  test_reflective_loader: ^0.4.0
   package_config: ^2.2.0
+
+dependency_overrides:
+  grumpy_annotations:
+    path: ../grumpy_annotations
