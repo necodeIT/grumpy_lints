@@ -92,7 +92,7 @@ String expectedGroupExpression(
   if (!useSuperGroup) {
     return "'$className'";
   }
-  return "'${_superGroupInterpolation}.$className'";
+  return "'$_superGroupInterpolation.$className'";
 }
 
 InsertionTarget? findInsertionTarget(
@@ -118,10 +118,7 @@ InsertionTarget? findInsertionTarget(
   }
 
   final insertionOffset = utils.getLineContentEnd(anchorOffset);
-  final between = utils.getText(
-    anchorOffset,
-    insertionOffset - anchorOffset,
-  );
+  final between = utils.getText(anchorOffset, insertionOffset - anchorOffset);
   final hasEol = between.contains('\n') || between.contains('\r');
   final leadingEol = hasEol ? '' : utils.endOfLine;
 
@@ -134,7 +131,7 @@ String buildGetterSource({
   required String expression,
   required String eol,
 }) {
-  return '${indent}@override$eol'
+  return '$indent@override$eol'
       '${indent}String get $name => $expression;$eol';
 }
 
@@ -192,7 +189,7 @@ bool _matchesSuperGroupInterpolation(
 
   final suffixElement = elements[index];
   if (suffixElement is! InterpolationString ||
-      suffixElement.value != '.${className}') {
+      suffixElement.value != '.$className') {
     return false;
   }
   index++;

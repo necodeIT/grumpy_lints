@@ -353,7 +353,7 @@ class _RequiredMethod {
 
   void _addExemptTypes(Iterable<DartType> types) {
     for (final exemptType in types) {
-      final label = exemptType.getDisplayString(withNullability: false);
+      final label = exemptType.getDisplayString();
       if (exemptTypeLabels.add(label)) {
         exemptTypes.add(exemptType);
       }

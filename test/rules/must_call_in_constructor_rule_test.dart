@@ -37,7 +37,7 @@ class Child extends Base {
   Child() {}
 }
 ''',
-      [lint(263, 10)],
+      [lint(262, 10, name: 'missing_required_constructor_call')],
     );
   }
 
@@ -78,7 +78,7 @@ abstract class Child extends Base {
   Child() { init(); }
 }
 ''',
-      [lint(236, 19, name: 'must_call_in_constructor_in_abstract')],
+      [lint(235, 19, name: 'avoid_abstract_constructor_calls')],
     );
   }
 
@@ -99,7 +99,7 @@ abstract class Child extends Base {
   Child() {}
 }
 ''',
-      [lint(237, 10)],
+      [lint(236, 10, name: 'missing_required_constructor_call')],
     );
   }
 }
