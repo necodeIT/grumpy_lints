@@ -1,9 +1,29 @@
-Class names should match the file names they are defined in (e.g., class FooBar should be defined in foo_bar.dart). This rule should only apply to module files.
+# Class Must Match File Name
 
-If there is a class with a name that does match, any other classes do not need to match the file name.
-For example, in a file named foo_bar.dart, the following is allowed:
+## Intent
+
+Ensure module file names remain a reliable signal for the primary class they
+contain.
+
+## Rule
+
+Class names should match the file names they are defined in (for example,
+class `FooBar` should be defined in `foo_bar.dart`). This rule applies only to
+module files.
+
+If there is a class with a name that matches, any other classes do not need to
+match the file name.
+
+## Rationale
+
+Matching file names simplify discovery and reduce time spent searching for a
+class definition.
+
+## Examples
 
 ```dart
+// GOOD: primary class matches file name
+// File: lib/src/module/domain/foo_bar.dart
 class FooBar {}
 
 class Baz {}

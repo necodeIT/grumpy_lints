@@ -1,26 +1,24 @@
 # Keep Modules Atomic
 
 ## Intent
+
 Keep module boundaries strict by avoiding inheritance that pulls implementation
 behavior from another module. This prevents cross-module coupling and preserves
 swap-ability of modules.
 
 ## Rule
+
 Infra classes must not extend classes defined in another module.
 
 This applies to classes under `infra/` (services, datasources, and other infra
 implementations). Inheritance is allowed only within the same module.
 
 ## Rationale
+
 Inheritance creates a strong, compile-time dependency on a concrete
 implementation. If infra classes extend infra or domain types from another
 module, the module boundary is effectively broken and refactors cascade across
 modules.
-
-## Allowed
-- Implement or extend domain contracts from the same module.
-- Depend on other modules via composition or DI using their domain contracts.
-- Share infra logic within the same module (base class or mixin).
 
 ## Examples
 
@@ -57,5 +55,6 @@ class MyUserService {
 ```
 
 ## Notes
+
 If you need shared infra behavior across modules, move it to a shared package
 or a dedicated common module rather than extending across feature modules.

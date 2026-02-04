@@ -28,7 +28,7 @@ class BaseClassRuleTest extends AnalysisRuleTest {
     _addBaseClassFile();
 
     final code = r'''
-import 'service.dart';
+import 'package:test/src/module/domain/services/service.dart';
 
 abstract class UserService extends Service {}
 ''';
@@ -41,7 +41,7 @@ abstract class UserService extends Service {}
     _addBaseClassFile();
 
     final code = r'''
-import 'service.dart';
+import 'package:test/src/module/domain/services/service.dart';
 
 abstract class UserService extends Service {}
 ''';
@@ -60,7 +60,7 @@ abstract class UserService extends Service {}
     _addBaseClassFile();
 
     final code = r'''
-import 'service.dart';
+import 'package:test/src/module/domain/services/service.dart';
 
 abstract class UserManager extends Service {}
 ''';
@@ -79,7 +79,7 @@ abstract class UserManager extends Service {}
     _addBaseClassFile(forceSuffix: false);
 
     final code = r'''
-import 'service.dart';
+import 'package:test/src/module/domain/services/service.dart';
 
 abstract class UserManager extends Service {}
 ''';
@@ -92,7 +92,7 @@ abstract class UserManager extends Service {}
     _addBaseClassFile();
 
     final code = r'''
-import 'service.dart';
+import 'package:test/src/module/domain/services/service.dart';
 
 abstract class UserService extends Service {}
 ''';
@@ -111,7 +111,7 @@ abstract class UserService extends Service {}
     _addBaseClassFile();
 
     final code = r'''
-import 'service.dart';
+import 'package:test/src/module/domain/services/service.dart';
 
 abstract class UserService extends Service {}
 ''';
@@ -130,7 +130,7 @@ abstract class UserService extends Service {}
     _addBaseClassFile();
 
     final code = r'''
-import 'service.dart';
+import 'package:test/src/module/domain/services/service.dart';
 
 abstract class UserService extends Service {}
 
@@ -143,6 +143,11 @@ class Helper {}
         'UserService'.length,
         name: 'base_class_extra_class',
       ),
+      lint(
+        code.indexOf('Helper'),
+        'Helper'.length,
+        name: 'base_class_missing_extension',
+      ),
     ]);
   }
 
@@ -151,9 +156,11 @@ class Helper {}
     _addBaseClassFile();
 
     final code = r'''
-import 'service.dart';
+import 'package:test/src/module/domain/services/service.dart';
 
 abstract class UserService {}
+
+void takesService(Service service) {}
 ''';
 
     await assertDiagnostics(code, [

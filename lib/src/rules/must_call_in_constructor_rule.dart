@@ -31,11 +31,26 @@ class MustCallInConstructorRule extends GrumpyRule {
     severity: DiagnosticSeverity.ERROR,
   );
 
+  static const LintCode initializerCode = LintCode(
+    'missing_required_initializer_call',
+    'Call {0} in the initializer, as required by {1}.',
+    correctionMessage: 'Add the required `{0}` call to the initializer.',
+    severity: DiagnosticSeverity.ERROR,
+  );
+
   static const LintCode abstractCode = LintCode(
     'avoid_abstract_constructor_calls',
     'Do not call {0} in an abstract constructor. '
         'Required by {1} for concrete classes.',
     correctionMessage: 'Remove the `{0}` call from the constructor.',
+    severity: DiagnosticSeverity.ERROR,
+  );
+
+  static const LintCode abstractInitializerCode = LintCode(
+    'avoid_abstract_initializer_calls',
+    'Do not call {0} in an abstract initializer. '
+        'Required by {1} for concrete classes.',
+    correctionMessage: 'Remove the `{0}` call from the initializer.',
     severity: DiagnosticSeverity.ERROR,
   );
 
@@ -46,11 +61,25 @@ class MustCallInConstructorRule extends GrumpyRule {
     severity: DiagnosticSeverity.INFO,
   );
 
+  static const LintCode exemptInitializerCode = LintCode(
+    'avoid_exempt_initializer_calls',
+    'Do not call {0} in the initializer. Exempt for {1}.',
+    correctionMessage: 'Remove the `{0}` call from the initializer.',
+    severity: DiagnosticSeverity.INFO,
+  );
+
   @override
   DiagnosticCode get diagnosticCode => code;
 
   @override
-  List<DiagnosticCode> get diagnosticCodes => [code, abstractCode, exemptCode];
+  List<DiagnosticCode> get diagnosticCodes => [
+    code,
+    initializerCode,
+    abstractCode,
+    abstractInitializerCode,
+    exemptCode,
+    exemptInitializerCode,
+  ];
 
   @override
   List<Example> get examples => [
@@ -110,8 +139,11 @@ class MustCallInConstructorRule extends GrumpyRule {
   @override
   Map<DiagnosticCode, ProducerGenerator> get fixes => {
     code: AddRequiredConstructorCallFix.new,
+    initializerCode: AddRequiredInitializerCallFix.new,
     abstractCode: RemoveAbstractConstructorCallFix.new,
+    abstractInitializerCode: RemoveAbstractInitializerCallFix.new,
     exemptCode: RemoveAbstractConstructorCallFix.new,
+    exemptInitializerCode: RemoveAbstractInitializerCallFix.new,
   };
 
   @override
@@ -185,6 +217,100 @@ class _Visitor extends SimpleAstVisitor<void> {
     final constructors = body is BlockClassBody
         ? body.members.whereType<ConstructorDeclaration>().toList()
         : const <ConstructorDeclaration>[];
+    final initializers = _collectInitializerMethods(body);
+    if (initializers.isNotEmpty) {
+      final initializerInvocations = [
+        for (final initializer in initializers)
+          _InitializerInvocation(
+            initializer,
+            _collectInvokedMethods(initializer.body),
+          ),
+      ];
+      final invoked = {
+        for (final invocation in initializerInvocations) ...invocation.invoked,
+      };
+
+      final reportNode = initializers.first;
+      for (final required in requiredMethods) {
+        if (invoked.contains(required.name)) {
+          continue;
+        }
+        context.debug(
+          'must_call_in_constructor: missing ${required.name} in '
+          '${element.displayName} initializer',
+        );
+        _reportWithCode(reportNode, MustCallInConstructorRule.initializerCode, [
+          required.name,
+          required.ownersLabelForRequirement(isAbstract: element.isAbstract),
+        ]);
+      }
+
+      if (exemptMethods.isNotEmpty) {
+        for (final invocation in initializerInvocations) {
+          for (final required in exemptMethods) {
+            if (!invocation.invoked.contains(required.name)) {
+              continue;
+            }
+            _reportWithCode(
+              invocation.method,
+              MustCallInConstructorRule.exemptInitializerCode,
+              [required.name, required.exemptTypeLabel],
+            );
+          }
+        }
+      }
+
+      if (element.isAbstract && concreteOnlyMethods.isNotEmpty) {
+        for (final invocation in initializerInvocations) {
+          for (final required in concreteOnlyMethods) {
+            if (!invocation.invoked.contains(required.name)) {
+              continue;
+            }
+            _reportWithCode(
+              invocation.method,
+              MustCallInConstructorRule.abstractInitializerCode,
+              [required.name, required.concreteOnlyOwnersLabel],
+            );
+          }
+        }
+      }
+
+      if (constructors.isNotEmpty) {
+        for (final constructor in constructors) {
+          if (constructor.redirectedConstructor != null) {
+            continue;
+          }
+          final invoked = _collectInvokedMethods(constructor.body);
+          if (exemptMethods.isNotEmpty) {
+            for (final required in exemptMethods) {
+              if (!invoked.contains(required.name)) {
+                continue;
+              }
+              _reportWithCode(
+                constructor,
+                MustCallInConstructorRule.exemptCode,
+                [required.name, required.exemptTypeLabel],
+              );
+            }
+          }
+          if (element.isAbstract && concreteOnlyMethods.isNotEmpty) {
+            for (final required in concreteOnlyMethods) {
+              if (!invoked.contains(required.name)) {
+                continue;
+              }
+              _reportWithCode(
+                constructor,
+                MustCallInConstructorRule.abstractCode,
+                [required.name, required.concreteOnlyOwnersLabel],
+              );
+            }
+          }
+        }
+      }
+
+      return;
+    }
+
     if (constructors.isEmpty) {
       for (final required in requiredMethods) {
         context.debug(
@@ -206,7 +332,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (constructor.redirectedConstructor != null) {
         continue;
       }
-      final invoked = _collectInvokedMethods(constructor);
+      final invoked = _collectInvokedMethods(constructor.body);
       for (final required in requiredMethods) {
         if (invoked.contains(required.name)) {
           continue;
@@ -316,6 +442,15 @@ ElementAnnotation? _findMustCallAnnotation(MethodElement method) {
   return null;
 }
 
+ElementAnnotation? _findInitializerAnnotation(ExecutableElement method) {
+  for (final annotation in method.metadata.annotations) {
+    if (_isInitializerAnnotation(annotation)) {
+      return annotation;
+    }
+  }
+  return null;
+}
+
 bool _isMustCallAnnotation(ElementAnnotation annotation) {
   final element = annotation.element;
   if (element == null) {
@@ -327,6 +462,22 @@ bool _isMustCallAnnotation(ElementAnnotation annotation) {
   }
   final enclosingName = element.enclosingElement?.displayName;
   if (enclosingName == 'MustCallInConstructor') {
+    return true;
+  }
+  return false;
+}
+
+bool _isInitializerAnnotation(ElementAnnotation annotation) {
+  final element = annotation.element;
+  if (element == null) {
+    return false;
+  }
+  final name = element.displayName;
+  if (name == 'initializer' || name == 'Initializer') {
+    return true;
+  }
+  final enclosingName = element.enclosingElement?.displayName;
+  if (enclosingName == 'Initializer') {
     return true;
   }
   return false;
@@ -354,10 +505,31 @@ List<DartType> _exemptTypes(ElementAnnotation annotation) {
   return types;
 }
 
-Set<String> _collectInvokedMethods(ConstructorDeclaration constructor) {
-  final visitor = _ConstructorCallVisitor();
-  constructor.body.accept(visitor);
+Set<String> _collectInvokedMethods(FunctionBody body) {
+  final visitor = _InvokedMethodVisitor();
+  body.accept(visitor);
   return visitor.invoked;
+}
+
+List<MethodDeclaration> _collectInitializerMethods(ClassBody body) {
+  if (body is! BlockClassBody) {
+    return const [];
+  }
+  final initializers = <MethodDeclaration>[];
+  for (final member in body.members) {
+    if (member is! MethodDeclaration) {
+      continue;
+    }
+
+    final element = member.declaredFragment?.element;
+    if (element == null) {
+      continue;
+    }
+    if (_findInitializerAnnotation(element) != null) {
+      initializers.add(member);
+    }
+  }
+  return initializers;
 }
 
 class _RequiredMethod {
@@ -434,7 +606,7 @@ class _RequiredMethod {
   }
 }
 
-class _ConstructorCallVisitor extends RecursiveAstVisitor<void> {
+class _InvokedMethodVisitor extends RecursiveAstVisitor<void> {
   final Set<String> invoked = {};
 
   @override
@@ -446,4 +618,11 @@ class _ConstructorCallVisitor extends RecursiveAstVisitor<void> {
     }
     super.visitMethodInvocation(node);
   }
+}
+
+class _InitializerInvocation {
+  final MethodDeclaration method;
+  final Set<String> invoked;
+
+  _InitializerInvocation(this.method, this.invoked);
 }

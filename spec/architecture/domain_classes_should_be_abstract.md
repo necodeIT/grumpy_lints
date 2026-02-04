@@ -1,17 +1,20 @@
 # Domain Classes Should Be Abstract
 
 ## Intent
+
 Treat domain services and datasources as contracts. Domain classes define the
 API; infra provides concrete implementations.
 
 ## Rule
+
 Classes in `domain/services` and `domain/datasources` must be declared
 `abstract`.
 
-This rule does **not** apply to domain models (DTOs/entities), which should be
+This rule does not apply to domain models (DTOs/entities), which should be
 concrete.
 
 ## Rationale
+
 Abstract domain contracts enforce dependency inversion and prevent direct
 instantiation in presentation or infra. This keeps boundaries explicit and
 makes it easy to swap implementations.
@@ -46,5 +49,6 @@ class User {
 ```
 
 ## Notes
+
 If you need shared behavior between domain contracts, use mixins or default
 implementations in separate helper classes, but keep the contracts abstract.
