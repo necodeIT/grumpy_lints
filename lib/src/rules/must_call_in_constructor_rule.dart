@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:grumpy_lints/src/fixes/must_call_in_constructor_fixes.dart';
+import 'package:grumpy_lints/src/log.dart';
 import 'package:grumpy_lints/src/rule.dart';
 
 class MustCallInConstructorRule extends GrumpyRule {
@@ -15,8 +16,11 @@ class MustCallInConstructorRule extends GrumpyRule {
     : super(
         name: 'must_call_in_constructor',
         description:
-            'Require constructors to call methods annotated with '
-            '@mustCallInConstructor on supertypes or mixins.',
+            'Requires constructors to call methods annotated with '
+            '@mustCallInConstructor from supertypes or mixins. It respects '
+            'concreteOnly (abstract classes must not call those methods) and '
+            'exempt (subtypes listed as exempt must not call the method at '
+            'all).',
       );
 
   static const LintCode code = LintCode(
@@ -39,7 +43,7 @@ class MustCallInConstructorRule extends GrumpyRule {
     'avoid_exempt_constructor_calls',
     'Do not call {0} in the constructor. Exempt for {1}.',
     correctionMessage: 'Remove the `{0}` call from the constructor.',
-    severity: DiagnosticSeverity.ERROR,
+    severity: DiagnosticSeverity.INFO,
   );
 
   @override
@@ -47,6 +51,61 @@ class MustCallInConstructorRule extends GrumpyRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [code, abstractCode, exemptCode];
+
+  @override
+  List<Example> get examples => [
+    '// Missing required call in the constructor.\n'
+            'mixin InitMixin {\n'
+            '  @mustCallInConstructor\n'
+            '  void init() {}\n'
+            '}\n\n'
+            'class Widget with InitMixin {\n'
+            '  Widget();\n'
+            '}\n'
+        .bad(),
+    '// Required call is present.\n'
+            'mixin InitMixin {\n'
+            '  @mustCallInConstructor\n'
+            '  void init() {}\n'
+            '}\n\n'
+            'class Widget with InitMixin {\n'
+            '  Widget() {\n'
+            '    init();\n'
+            '  }\n'
+            '}\n'
+        .good(),
+    '// Abstract classes must not call methods that are concreteOnly.\n'
+            'mixin InitMixin {\n'
+            '  @MustCallInConstructor(concreteOnly: true)\n'
+            '  void init() {}\n'
+            '}\n\n'
+            'abstract class BaseWidget with InitMixin {\n'
+            '  BaseWidget() {\n'
+            '    init();\n'
+            '  }\n'
+            '}\n'
+        .bad(),
+    '// Exempt types must not call the annotated method.\n'
+            'mixin InitMixin {\n'
+            '  @MustCallInConstructor(exempt: [NoopWidget])\n'
+            '  void init() {}\n'
+            '}\n\n'
+            'class NoopWidget with InitMixin {\n'
+            '  NoopWidget() {\n'
+            '    init();\n'
+            '  }\n'
+            '}\n'
+        .bad(),
+    '// Exempt types can omit the call entirely.\n'
+            'mixin InitMixin {\n'
+            '  @MustCallInConstructor(exempt: [NoopWidget])\n'
+            '  void init() {}\n'
+            '}\n\n'
+            'class NoopWidget with InitMixin {\n'
+            '  NoopWidget();\n'
+            '}\n'
+        .good(),
+  ];
 
   @override
   Map<DiagnosticCode, ProducerGenerator> get fixes => {
@@ -75,6 +134,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     DiagnosticCode code,
     List<Object> arguments,
   ) {
+    context.debug(
+      'must_call_in_constructor: report ${code.lowerCaseName} at '
+      '${node.offset}:${node.length}',
+    );
     final reporter = context.currentUnit?.diagnosticReporter;
     if (reporter == null) {
       return;
@@ -88,6 +151,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (element == null) {
       return;
     }
+
+    context.debug('must_call_in_constructor: checking ${element.displayName}');
 
     final requiredByName = _collectRequiredMethods(element);
     if (requiredByName.isEmpty) {
@@ -122,6 +187,10 @@ class _Visitor extends SimpleAstVisitor<void> {
         : const <ConstructorDeclaration>[];
     if (constructors.isEmpty) {
       for (final required in requiredMethods) {
+        context.debug(
+          'must_call_in_constructor: missing ${required.name} in '
+          '${element.displayName}',
+        );
         rule.reportAtNode(
           node.namePart,
           arguments: [
@@ -142,6 +211,10 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (invoked.contains(required.name)) {
           continue;
         }
+        context.debug(
+          'must_call_in_constructor: missing ${required.name} in '
+          '${element.displayName} constructor',
+        );
         rule.reportAtNode(
           constructor,
           arguments: [

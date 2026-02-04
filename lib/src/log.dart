@@ -28,15 +28,24 @@ extension GrumpyLog on RuleContext {
     GrumpyLogSeverity severity,
     String message,
   ) {
-    final root = _findWorkspaceRoot(context);
-    final file = File(_joinPath(root, logFileName));
     final timestamp = DateTime.now().toIso8601String();
     final line = '[${severity.name.toUpperCase()}] $timestamp $message';
-    file.writeAsStringSync(
-      '$line${Platform.lineTerminator}',
-      mode: FileMode.append,
-      flush: true,
-    );
+    if (_shouldPrintToStdout()) {
+      _printLine(severity, line);
+      return;
+    }
+
+    final root = _findWorkspaceRoot(context);
+    final file = File(_joinPath(root, logFileName));
+    try {
+      file.writeAsStringSync(
+        '$line${Platform.lineTerminator}',
+        mode: FileMode.append,
+        flush: true,
+      );
+    } on FileSystemException {
+      _printLine(severity, line);
+    }
   }
 
   static String _findWorkspaceRoot(RuleContext context) {
@@ -53,5 +62,25 @@ extension GrumpyLog on RuleContext {
       return '$root$file';
     }
     return '$root$separator$file';
+  }
+
+  static bool _shouldPrintToStdout() {
+    final env = Platform.environment;
+    if (env['GRUMPY_LINTS_LOG_STDOUT'] == '1' ||
+        env['GRUMPY_LINTS_LOG_STDOUT']?.toLowerCase() == 'true') {
+      return true;
+    }
+    return env.containsKey('DART_TEST') ||
+        env.containsKey('FLUTTER_TEST') ||
+        env.containsKey('UNIT_TEST');
+  }
+
+  static void _printLine(GrumpyLogSeverity severity, String line) {
+    if (severity == GrumpyLogSeverity.error ||
+        severity == GrumpyLogSeverity.warning) {
+      stderr.writeln(line);
+      return;
+    }
+    stdout.writeln(line);
   }
 }

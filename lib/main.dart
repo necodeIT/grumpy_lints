@@ -2,6 +2,7 @@ import 'package:analysis_server_plugin/plugin.dart';
 import 'package:analysis_server_plugin/registry.dart';
 import 'package:grumpy_lints/src/rule.dart';
 import 'package:grumpy_lints/src/rules/abstract_classes_should_set_log_group_rule.dart';
+import 'package:grumpy_lints/src/rules/base_class_rule.dart';
 import 'package:grumpy_lints/src/rules/concrete_classes_should_set_log_tag_rule.dart';
 import 'package:grumpy_lints/src/rules/must_call_in_constructor_rule.dart';
 
@@ -16,6 +17,7 @@ class GrumpyLints extends Plugin {
     MustCallInConstructorRule(),
     AbstractClassesShouldSetLogGroupRule(),
     ConcreteClassesShouldSetLogTagRule(),
+    BaseClassRule(),
   ];
 
   @override

@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:grumpy_lints/src/fixes/logging_fixes.dart';
+import 'package:grumpy_lints/src/log.dart';
 import 'package:grumpy_lints/src/rule.dart';
 import 'package:grumpy_lints/src/rules/logging_utils.dart';
 
@@ -14,15 +15,17 @@ class AbstractClassesShouldSetLogGroupRule extends GrumpyRule {
     : super(
         name: 'abstract_classes_should_set_log_group',
         description:
-            'Abstract classes using LogMixin must override group '
-            'with their class name, or append to super.group.',
+            'Abstract classes that mix in LogMixin must override `group` '
+            'to return their class name. If they extend another abstract '
+            'LogMixin class, they must append their class name to '
+            '`super.group` to keep group names hierarchical.',
       );
 
   static const LintCode code = LintCode(
     'abstract_classes_should_set_log_group',
     'Set group for {0} to {1}.',
     correctionMessage: 'Add or update group to return {1}.',
-    severity: DiagnosticSeverity.ERROR,
+    severity: DiagnosticSeverity.INFO,
   );
 
   @override
@@ -30,15 +33,30 @@ class AbstractClassesShouldSetLogGroupRule extends GrumpyRule {
 
   @override
   List<Example> get examples => [
-    'abstract class MyAbstractClass with LogMixin {\n}\n'.bad(),
-    'abstract class MyAbstractClass with LogMixin {\n'
+    '// Missing group override on an abstract LogMixin class.\n'
+            'abstract class MyAbstractClass with LogMixin {\n'
+            '  // ...\n'
+            '}\n'
+        .bad(),
+    '// Missing group override when extending another LogMixin class.\n'
+            'abstract class BaseAbstractClass with LogMixin {\n'
             '  @override\n'
-            '  String get group => \'MyAbstractClass\';\n'
+            "  String get group => 'BaseAbstractClass';\n"
+            '}\n\n'
+            'abstract class DerivedAbstractClass extends BaseAbstractClass {\n'
+            '  // ...\n'
+            '}\n'
+        .bad(),
+    '// Group must match the abstract class name.\n'
+            'abstract class MyAbstractClass with LogMixin {\n'
+            '  @override\n'
+            "  String get group => 'MyAbstractClass';\n"
             '}\n'
         .good(),
-    'abstract class BaseAbstractClass with LogMixin {\n'
+    '// Derived abstract classes must append to super.group.\n'
+            'abstract class BaseAbstractClass with LogMixin {\n'
             '  @override\n'
-            '  String get group => \'BaseAbstractClass\';\n'
+            "  String get group => 'BaseAbstractClass';\n"
             '}\n\n'
             'abstract class DerivedAbstractClass extends BaseAbstractClass {\n'
             '  @override\n'
@@ -48,22 +66,24 @@ class AbstractClassesShouldSetLogGroupRule extends GrumpyRule {
   ];
 
   @override
-  Map<DiagnosticCode, ProducerGenerator> get fixes =>
-      {code: SetLogGroupFix.new};
+  Map<DiagnosticCode, ProducerGenerator> get fixes => {
+    code: SetLogGroupFix.new,
+  };
 
   @override
   void registerNodeProcessors(
     RuleVisitorRegistry registry,
     RuleContext context,
   ) {
-    registry.addClassDeclaration(this, _Visitor(this));
+    registry.addClassDeclaration(this, _Visitor(this, context));
   }
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
   final AbstractClassesShouldSetLogGroupRule rule;
+  final RuleContext context;
 
-  _Visitor(this.rule);
+  _Visitor(this.rule, this.context);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
@@ -87,6 +107,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
+    context.debug(
+      'abstract_classes_should_set_log_group: report ${element.displayName} at '
+      '${node.offset}:${node.length}',
+    );
     rule.reportAtNode(
       node.namePart,
       arguments: [

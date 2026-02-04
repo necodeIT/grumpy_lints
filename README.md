@@ -9,6 +9,7 @@ Lint rules for using [Grumpy](https://github.com/necodeIT/grumpy) architecture c
 | [must_call_in_constructor](#must_call_in_constructor) | Require constructors to call methods annotated with @mustCallInConstructor on supertypes or mixins. | ERROR | ✅ | 3 |
 | [abstract_classes_should_set_log_group](#abstract_classes_should_set_log_group) | Abstract classes using LogMixin must override group with their class name, or append to super.group. | ERROR | ✅ | 1 |
 | [concrete_classes_should_set_log_tag](#concrete_classes_should_set_log_tag) | Concrete classes using LogMixin must override logTag with their class name. | ERROR | ✅ | 1 |
+| [base_class](#base_class) | Subclasses of classes annotated with BaseClass must follow layer, naming, and file layout rules. | WARNING | ❌ | 6 |
 
 
 
@@ -86,6 +87,33 @@ class MyConcreteClass with LogMixin {
   @override
   String get logTag => 'MyConcreteClass';
 }
+
+```
+
+
+
+
+### base_class
+
+Subclasses of classes annotated with BaseClass must follow layer, naming, and file layout rules.
+#### Codes
+- `base_class_invalid_layer` (WARNING)
+- `base_class_missing_suffix` (WARNING)
+- `base_class_wrong_directory` (WARNING)
+- `base_class_wrong_file_name` (WARNING)
+- `base_class_extra_class` (WARNING)
+- `base_class_missing_extension` (WARNING)
+
+#### Examples
+**✅ DO**
+```dart
+abstract class UserService extends Service {}
+
+```
+
+**❌ DON'T**
+```dart
+abstract class UserManager extends Service {}
 
 ```
 
