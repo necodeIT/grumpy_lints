@@ -10,6 +10,8 @@ Lint rules for using [Grumpy](https://github.com/necodeIT/grumpy) architecture c
 | [abstract_classes_should_set_log_group](#abstract_classes_should_set_log_group) | Abstract classes that mix in LogMixin must override `group` to return their class name. If they extend another abstract LogMixin class, they must append their class name to `super.group` to keep group names hierarchical. | INFO | ✅ | 1 |
 | [concrete_classes_should_set_log_tag](#concrete_classes_should_set_log_tag) | Concrete (non-abstract) classes that mix in LogMixin must override `logTag` to return their own class name. This applies even when inheriting from another LogMixin class so each class logs with a specific tag. | INFO | ✅ | 1 |
 | [base_class](#base_class) | Enforces the BaseClass contract: subclasses must live in allowed layers, use the base class name as a suffix when forceSuffix is true, reside in the configured type directory with a snake_case filename, be the only class in the file, and any class inside the type directory must extend the base class. Test files are exempt. | INFO | ❌ | 6 |
+| [domain_factory_from_di](#domain_factory_from_di) | Requires domain services and datasources (excluding base classes) to declare an unnamed factory constructor that resolves the implementation from DI. | INFO | ✅ | 1 |
+| [prefer_domain_di_factory](#prefer_domain_di_factory) | Prefer using the domain contract factory constructor over direct DI access (Service.get/Datasource.get) outside the domain layer. | INFO | ✅ | 1 |
 
 
 
@@ -293,3 +295,53 @@ abstract class UserService {}
 
 ```
 
+
+
+### domain_factory_from_di
+
+Requires domain services and datasources (excluding base classes) to declare an unnamed factory constructor that resolves the implementation from DI.
+#### Codes
+- `domain_factory_from_di_missing_factory` (INFO)
+
+#### Examples
+**❌ DON'T**
+```dart
+// Missing factory constructor.
+abstract class RoutingService<T, Config> extends Service {}
+
+```
+
+**✅ DO**
+```dart
+// Factory constructor resolves from DI.
+abstract class RoutingService<T, Config> extends Service {
+  /// Returns the DI-registered implementation of [RoutingService].
+  factory RoutingService() {
+    return Service.get<RoutingService<T, Config>>();
+  }
+}
+
+```
+
+
+
+### prefer_domain_di_factory
+
+Prefer using the domain contract factory constructor over direct DI access (Service.get/Datasource.get) outside the domain layer.
+#### Codes
+- `prefer_domain_di_factory` (INFO)
+
+#### Examples
+**❌ DON'T**
+```dart
+// Direct DI access from a non-domain layer.
+final routing = Service.get<RoutingService>();
+
+```
+
+**✅ DO**
+```dart
+// Use the domain factory constructor.
+final routing = RoutingService();
+
+```
