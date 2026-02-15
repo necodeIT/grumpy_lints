@@ -7,9 +7,9 @@ void main(List<String> args) {
   final f = File('README.template');
   var template = f.readAsStringSync();
 
-  final regex = RegExp(r"{{rules\((\d*)\)}}");
+  final rulesRegex = RegExp(r"{{rules\((\d*)\)}}");
 
-  final match = regex.firstMatch(template)!;
+  final match = rulesRegex.firstMatch(template)!;
 
   final count = int.parse(match.group(1) ?? '0');
 
@@ -65,7 +65,17 @@ void main(List<String> args) {
     rulesBuffer.writeln('$subHeaderLevel Examples\n$examples\n');
   }
 
-  template = template.replaceFirst(regex, rulesBuffer.toString());
+  template = template.replaceFirst(rulesRegex, rulesBuffer.toString());
+
+  final yamlRulesRegex = RegExp(r"{{yaml_rules\((\d*)\)}}");
+
+  final yamlMatch = yamlRulesRegex.firstMatch(template)!;
+
+  final indent = '\t' * int.parse(match.group(1) ?? '0');
+
+  final yamlRules = rules.map((r) => '$indent${r.name}: true').join('\n');
+
+  template = template.replaceFirst(yamlRulesRegex, yamlRules);
 
   final outputFile = File('README.md');
   outputFile.writeAsStringSync(template);
