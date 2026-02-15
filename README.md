@@ -10,14 +10,14 @@ To use the recommended lint rules drop the following into your `analysis_options
 plugins:
   grumpy_lints:
     diagnostics:
-			leaf_preview_must_not_use_injectables_or_navigation: true
-			must_call_in_constructor: true
-			abstract_classes_should_set_log_group: true
-			concrete_classes_should_set_log_tag: true
-			base_class: true
-			domain_factory_from_di: true
-			prefer_domain_di_factory: true
-			lifecycle_mixin_requires_singleton: true
+      leaf_preview_must_not_use_injectables_or_navigation: true
+      must_call_in_constructor: true
+      abstract_classes_should_set_log_group: true
+      concrete_classes_should_set_log_tag: true
+      base_class: true
+      domain_factory_from_di: true
+      prefer_domain_di_factory: true
+      lifecycle_mixin_requires_singleton: true
 ```
 
 
