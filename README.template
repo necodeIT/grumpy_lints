@@ -10,7 +10,7 @@ To use the recommended lint rules drop the following into your `analysis_options
 plugins:
   grumpy_lints:
     diagnostics:
-{{yaml_rules(4)}}
+{{yaml_rules(3)}}
 ```
 
 

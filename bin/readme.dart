@@ -71,7 +71,7 @@ void main(List<String> args) {
 
   final yamlMatch = yamlRulesRegex.firstMatch(template)!;
 
-  final indent = '  ' * int.parse(match.group(1) ?? '0');
+  final indent = '  ' * int.parse(yamlMatch.group(1) ?? '0');
 
   final yamlRules = rules.map((r) => '$indent${r.name}: true').join('\n');
 
