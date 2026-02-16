@@ -86,15 +86,17 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (previewMethod == null) {
       return;
     }
-    if (!_isLeafPreviewOverride(classElement, previewMethod!)) {
+    if (!_isLeafPreviewOverride(classElement, previewMethod)) {
       return;
     }
 
-    final topLevelFunctions = _indexTopLevelFunctions(context.currentUnit?.unit);
+    final topLevelFunctions = _indexTopLevelFunctions(
+      context.currentUnit?.unit,
+    );
     final callStack = <String>['preview'];
     final seen = <String>{};
     final result = _findForbiddenUse(
-      previewMethod!.body,
+      previewMethod.body,
       methods,
       topLevelFunctions,
       callStack,
@@ -107,12 +109,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     final path = result.path.join(' -> ');
     context.debug(
       'leaf_preview_must_not_use_injectables_or_navigation: report '
-      '${classElement.displayName} at ${previewMethod!.offset}:${previewMethod.length}',
+      '${classElement.displayName} at ${previewMethod.offset}:${previewMethod.length}',
     );
-    rule.reportAtNode(
-      previewMethod!,
-      arguments: ['$path -> ${result.sink}'],
-    );
+    rule.reportAtNode(previewMethod, arguments: ['$path -> ${result.sink}']);
   }
 }
 
@@ -250,7 +249,9 @@ class _CallRef {
   const _CallRef(this.kind, this.name);
 }
 
-Map<String, FunctionDeclaration> _indexTopLevelFunctions(CompilationUnit? unit) {
+Map<String, FunctionDeclaration> _indexTopLevelFunctions(
+  CompilationUnit? unit,
+) {
   if (unit == null) {
     return const {};
   }
@@ -324,7 +325,8 @@ bool _isDiAccessor(MethodInvocation node) {
 }
 
 bool _isInjectableType(DartType? type) {
-  return _isTypeNamed(type, 'Injectable') || _isSubtypeNamed(type, 'Injectable');
+  return _isTypeNamed(type, 'Injectable') ||
+      _isSubtypeNamed(type, 'Injectable');
 }
 
 bool _isRoutingType(DartType? type) {
