@@ -26,7 +26,7 @@ void main(List<String> args) {
 
   for (final rule in rules) {
     final ruleName = rule.name;
-    final overview = rule.description.split('\n').first;
+    final overview = rule.description.split('\n').first.split('. ').first;
     final severity = _maxSeverity(
       rule.diagnosticCodes.map((code) => code.severity),
     ).name;
