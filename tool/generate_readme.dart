@@ -50,12 +50,7 @@ void main(List<String> args) {
               .join('\n')
         : 'No diagnostic codes.';
     final examples = rule.examples.isNotEmpty
-        ? rule.examples
-              .map(
-                (e) =>
-                    '**${e.isGood ? '✅ DO' : '❌ DON\'T'}**\n```dart\n${e.code}\n```',
-              )
-              .join('\n\n')
+        ? rule.examples.map((e) => e.toMarkdown()).join('\n\n')
         : 'No examples provided.';
 
     rulesBuffer.writeln('\n\n');

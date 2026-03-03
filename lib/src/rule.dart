@@ -26,6 +26,11 @@ class Example {
 
   @override
   String toString() {
+    return '${isGood ? '✅' : '❌'} \n\n$code';
+  }
+
+  /// Converts the example to a markdown string with a code block, prefixed by a checkmark if [isGood] or a cross if not.
+  String toMarkdown() {
     return '**${isGood ? '✅ DO' : '❌ DON\'T'}**\n```dart\n$code\n```';
   }
 }
