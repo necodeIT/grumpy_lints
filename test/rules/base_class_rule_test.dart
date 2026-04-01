@@ -51,6 +51,7 @@ abstract class UserService extends Service {}
         code.indexOf('UserService'),
         'UserService'.length,
         name: 'base_class_invalid_layer',
+        messageContains: 'Classes extending Service must be defined',
       ),
     ]);
   }

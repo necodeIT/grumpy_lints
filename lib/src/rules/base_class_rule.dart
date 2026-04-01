@@ -194,7 +194,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (pathInfo.layer == null ||
         !baseInfo.allowedLayers.contains(pathInfo.layer)) {
       _reportWithCode(node.namePart, BaseClassRule.invalidLayerCode, [
-        className,
+        baseInfo.name,
         baseInfo.allowedLayersLabel,
       ]);
     }
