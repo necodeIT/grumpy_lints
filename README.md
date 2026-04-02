@@ -276,7 +276,7 @@ class DerivedConcreteClass extends BaseClass {
 
 ### base_class
 
-Enforces the BaseClass contract: subclasses must live in allowed layers, use the base class name as a suffix when forceSuffix is true, reside in the configured type directory with a snake_case filename, be the only class in the file, and any class inside the type directory must extend the base class. Test files are exempt.
+Enforces the BaseClass contract: subclasses must live in allowed layers, use the base class name as a suffix when forceSuffix is true, reside in the configured type directory with a snake_case filename, be the only class in the file, and any class inside the type directory must extend the base class. Only the base class with the minimum supertype depth is validated against. Test files are exempt.
 #### Codes
 - `base_class_invalid_layer` (INFO)
 - `base_class_missing_suffix` (INFO)
