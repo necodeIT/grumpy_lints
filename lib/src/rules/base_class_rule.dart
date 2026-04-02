@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 // ignore: implementation_imports
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
@@ -6,6 +8,7 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:grumpy_lints/src/log.dart';
 import 'package:grumpy_lints/src/rule.dart';
@@ -19,7 +22,9 @@ class BaseClassRule extends GrumpyRule {
             'layers, use the base class name as a suffix when forceSuffix is '
             'true, reside in the configured type directory with a snake_case '
             'filename, be the only class in the file, and any class inside the '
-            'type directory must extend the base class. Test files are exempt.',
+            'type directory must extend the base class. Only the base class '
+            'with the minimum supertype depth is validated against. Test files '
+            'are exempt.',
       );
 
   static const LintCode invalidLayerCode = LintCode(
@@ -259,19 +264,49 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   _BaseClassInfo? _findBaseClassInfo(ClassElement element) {
-    for (final supertype in element.allSupertypes) {
+    final queue = Queue<({InterfaceElement element, int depth})>();
+    final visited = <InterfaceElement>{element};
+
+    for (final supertype in _directSupertypes(element)) {
       final superElement = supertype.element;
-      if (superElement is! ClassElement) {
-        continue;
+      if (visited.add(superElement)) {
+        queue.add((element: superElement, depth: 1));
       }
-      final annotation = _findBaseClassAnnotation(superElement);
-      if (annotation == null) {
-        continue;
+    }
+
+    while (queue.isNotEmpty) {
+      final current = queue.removeFirst();
+      final currentElement = current.element;
+      if (currentElement is ClassElement) {
+        final annotation = _findBaseClassAnnotation(currentElement);
+        if (annotation != null) {
+          return _BaseClassInfo.fromAnnotation(annotation, currentElement);
+        }
       }
-      return _BaseClassInfo.fromAnnotation(annotation, superElement);
+
+      for (final supertype in _directSupertypes(currentElement)) {
+        final superElement = supertype.element;
+        if (visited.add(superElement)) {
+          queue.add((element: superElement, depth: current.depth + 1));
+        }
+      }
     }
     return null;
   }
+}
+
+List<InterfaceType> _directSupertypes(InterfaceElement element) {
+  final supertypes = <InterfaceType>[];
+  final supertype = element.supertype;
+  if (supertype != null) {
+    supertypes.add(supertype);
+  }
+  supertypes.addAll(element.mixins);
+  supertypes.addAll(element.interfaces);
+  if (element is MixinElement) {
+    supertypes.addAll(element.superclassConstraints);
+  }
+  return supertypes;
 }
 
 class _BaseClassInfo {

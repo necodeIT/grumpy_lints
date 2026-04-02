@@ -173,8 +173,69 @@ void takesService(Service service) {}
     ]);
   }
 
+  void
+  test_nearest_annotated_base_wins_for_allowed_layers_and_type_directory() async {
+    _testFileName = 'src/module/presentation/screens/home_screen.dart';
+    _addNearestDepthBaseClassFiles();
+
+    final code = r'''
+import 'package:test/src/module/presentation/screens/screen.dart';
+
+class HomeScreen extends Screen {}
+''';
+
+    await assertNoDiagnostics(code);
+  }
+
+  void test_nearest_annotated_base_wins_for_force_suffix() async {
+    _testFileName = 'src/module/presentation/screens/home.dart';
+    _addNearestDepthBaseClassFiles(screenForceSuffix: false);
+
+    final code = r'''
+import 'package:test/src/module/presentation/screens/screen.dart';
+
+class Home extends Screen {}
+''';
+
+    await assertNoDiagnostics(code);
+  }
+
+  void test_nearest_annotated_base_is_the_only_base_validated() async {
+    _testFileName = 'src/module/presentation/screens/home_model.dart';
+    _addNearestDepthBaseClassFiles();
+
+    final code = r'''
+import 'package:test/src/module/presentation/screens/screen.dart';
+
+class HomeModel extends Screen {}
+''';
+
+    await assertDiagnostics(code, [
+      lint(
+        code.indexOf('HomeModel'),
+        'HomeModel'.length,
+        name: 'base_class_missing_suffix',
+      ),
+    ]);
+  }
+
   void _addBaseClassFile({bool forceSuffix = true}) {
+    _addBaseClassAnnotationFile();
+
     newFile('$testPackageLibPath/src/module/domain/services/service.dart', '''
+import 'package:test/src/base_class.dart';
+
+@BaseClass(
+  allowedLayers: {LayerType.domain},
+  typeDirectory: 'services',
+  forceSuffix: $forceSuffix,
+)
+abstract class Service {}
+''');
+  }
+
+  void _addBaseClassAnnotationFile() {
+    newFile('$testPackageLibPath/src/base_class.dart', '''
 enum LayerType { infra, domain, presentation }
 
 class BaseClass {
@@ -188,13 +249,41 @@ class BaseClass {
     this.forceSuffix = true,
   });
 }
+''');
+  }
+
+  void _addNearestDepthBaseClassFiles({bool screenForceSuffix = true}) {
+    _addBaseClassAnnotationFile();
+
+    newFile('$testPackageLibPath/src/module/domain/models/model.dart', '''
+import 'package:test/src/base_class.dart';
 
 @BaseClass(
   allowedLayers: {LayerType.domain},
-  typeDirectory: 'services',
-  forceSuffix: $forceSuffix,
+  typeDirectory: 'models',
 )
-abstract class Service {}
+abstract class Model {}
 ''');
+
+    newFile('$testPackageLibPath/src/module/domain/models/leaf_model.dart', '''
+import 'package:test/src/module/domain/models/model.dart';
+
+abstract class LeafModel extends Model {}
+''');
+
+    newFile(
+      '$testPackageLibPath/src/module/presentation/screens/screen.dart',
+      '''
+import 'package:test/src/base_class.dart';
+import 'package:test/src/module/domain/models/leaf_model.dart';
+
+@BaseClass(
+  allowedLayers: {LayerType.presentation},
+  typeDirectory: 'screens',
+  forceSuffix: $screenForceSuffix,
+)
+abstract class Screen extends LeafModel {}
+''',
+    );
   }
 }
